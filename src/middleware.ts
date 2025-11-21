@@ -471,7 +471,7 @@ async function handleRequestKeyEndpoint(context: any) {
 /**
  * Generate HTML page for displaying API keys and statistics
  */
-function generateApiKeyPage(email: string, apiKeys: ApiKeyData[], stats: Record<string, any>): string {
+function generateApiKeyPage(email: string, apiKeys: ApiKeyData[], stats: Record<string, any>, token: string): string {
 	const apiKeysHtml = apiKeys.map((keyData) => {
 		const keyStats = stats[keyData.key] || {};
 		const createdAt = new Date(keyData.createdAt).toLocaleDateString('tr-TR');
@@ -604,12 +604,18 @@ async function handleMagicLinkAuthEndpoint(context: any, token: string) {
 		}
 
 		// Generate HTML page with API keys and statistics
-		const html = generateApiKeyPage(email, apiKeys, stats);
+		const html = generateApiKeyPage(email, apiKeys, stats, token);
+		
+		// Set cookie with token (expires in 30 days)
+		const expiresDate = new Date();
+		expiresDate.setTime(expiresDate.getTime() + (30 * 24 * 60 * 60 * 1000));
+		const cookieValue = `magic_link_token=${token}; expires=${expiresDate.toUTCString()}; path=/; SameSite=Lax; Secure`;
 		
 		return new Response(html, {
 			status: 200,
 			headers: { 
 				'Content-Type': 'text/html; charset=utf-8',
+				'Set-Cookie': cookieValue,
 			},
 		});
 	} catch (error) {

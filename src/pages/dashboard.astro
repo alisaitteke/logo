@@ -11,107 +11,69 @@
 		<title>Logo CDN - Dashboard</title>
 	</head>
 	<body class="min-h-screen bg-gray-50">
-		<div class="container mx-auto px-4 py-8">
+		<!-- Navigation -->
+		<nav class="bg-white shadow-sm border-b border-gray-200">
+			<div class="container mx-auto px-4 py-4">
+				<div class="flex items-center justify-between">
+					<div class="flex items-center space-x-8">
+						<a href="/" class="text-xl font-bold text-gray-900">Logo CDN</a>
+						<div class="hidden md:flex space-x-4">
+							<a href="/" class="px-3 py-2 text-gray-600 hover:text-gray-900">Home</a>
+							<a href="/dashboard" class="px-3 py-2 text-gray-700 hover:text-gray-900 font-medium">Dashboard</a>
+							<a href="/docs" class="px-3 py-2 text-gray-600 hover:text-gray-900">Documentation</a>
+						</div>
+					</div>
+					<a
+						href="/dashboard"
+						class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+					>
+						Get Started
+					</a>
+				</div>
+			</div>
+		</nav>
+
+		<div class="container mx-auto px-4 py-8 max-w-2xl">
 			<header class="mb-8">
 				<h1 class="text-4xl font-bold text-gray-900 mb-2">Logo CDN Dashboard</h1>
-				<p class="text-gray-600">Manage your API keys and view usage statistics</p>
+				<p class="text-gray-600">Get your API key via magic link</p>
 			</header>
 
-			<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<!-- API Key Management Section -->
-				<div class="bg-white rounded-lg shadow-md p-6">
-					<h2 class="text-2xl font-semibold text-gray-800 mb-4">API Key Management</h2>
-					
-					<!-- Request New Key Form -->
-					<div class="mb-6">
-						<h3 class="text-lg font-medium text-gray-700 mb-3">Request New API Key</h3>
-						<form id="request-key-form" class="space-y-4">
-							<div>
-								<label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-									Email Address
-								</label>
-								<input
-									type="email"
-									id="email"
-									name="email"
-									required
-									class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-									placeholder="your@email.com"
-								/>
-							</div>
-							<button
-								type="submit"
-								class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-							>
-								Request API Key
-							</button>
-						</form>
-						<div id="request-key-message" class="mt-3 text-sm"></div>
-					</div>
-
-					<!-- API Keys List -->
-					<div>
-						<h3 class="text-lg font-medium text-gray-700 mb-3">Your API Keys</h3>
-						<div id="api-keys-list" class="space-y-2">
-							<p class="text-gray-500 text-sm">Enter your email and request a key to get started.</p>
+			<!-- Send Magic Link Section -->
+			<div class="bg-white rounded-lg shadow-md p-6">
+				<h2 class="text-2xl font-semibold text-gray-800 mb-4">Get API Key</h2>
+				
+				<!-- Send Magic Link Form -->
+				<div>
+					<h3 class="text-lg font-medium text-gray-700 mb-3">Send Magic Link</h3>
+					<form id="request-key-form" class="space-y-4">
+						<div>
+							<label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+								Email Address
+							</label>
+							<input
+								type="email"
+								id="email"
+								name="email"
+								required
+								class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+								placeholder="your@email.com"
+							/>
 						</div>
-					</div>
-				</div>
-
-				<!-- Statistics Section -->
-				<div class="bg-white rounded-lg shadow-md p-6">
-					<h2 class="text-2xl font-semibold text-gray-800 mb-4">Usage Statistics</h2>
-					
-					<div id="stats-container" class="space-y-4">
-						<div class="text-center py-8 text-gray-500">
-							<p>Enter your API key or magic link token to view statistics.</p>
-						</div>
-					</div>
-
-					<!-- Statistics Input -->
-					<div class="mt-6 pt-6 border-t border-gray-200">
-						<h3 class="text-lg font-medium text-gray-700 mb-3">View Statistics</h3>
-						<form id="stats-form" class="space-y-4">
-							<div>
-								<label for="stats-token" class="block text-sm font-medium text-gray-700 mb-1">
-									Magic Link Token or API Key
-								</label>
-								<input
-									type="text"
-									id="stats-token"
-									name="token"
-									class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-									placeholder="Enter token or API key"
-								/>
-							</div>
-							<div>
-								<label for="stats-days" class="block text-sm font-medium text-gray-700 mb-1">
-									Days (1-365)
-								</label>
-								<input
-									type="number"
-									id="stats-days"
-									name="days"
-									min="1"
-									max="365"
-									value="30"
-									class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-								/>
-							</div>
-							<button
-								type="submit"
-								class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
-							>
-								Load Statistics
-							</button>
-						</form>
-					</div>
+						<button
+							type="submit"
+							class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+						>
+							Send Magic Link
+						</button>
+					</form>
+					<div id="request-key-message" class="mt-3 text-sm"></div>
 				</div>
 			</div>
 		</div>
 
 		<script>
-			// Request API Key Form Handler
+			// Send Magic Link Form Handler
 			document.getElementById('request-key-form')?.addEventListener('submit', async (e) => {
 				e.preventDefault();
 				const form = e.target as HTMLFormElement;
@@ -141,87 +103,13 @@
 						messageDiv.className = 'mt-3 text-sm text-green-600';
 						form.reset();
 					} else if (messageDiv) {
-						messageDiv.textContent = data.error || 'Failed to request API key';
+						messageDiv.textContent = data.error || 'Failed to send magic link';
 						messageDiv.className = 'mt-3 text-sm text-red-600';
 					}
 				} catch (error) {
 					if (messageDiv) {
 						messageDiv.textContent = 'An error occurred. Please try again.';
 						messageDiv.className = 'mt-3 text-sm text-red-600';
-					}
-				}
-			});
-
-			// Statistics Form Handler
-			document.getElementById('stats-form')?.addEventListener('submit', async (e) => {
-				e.preventDefault();
-				const form = e.target as HTMLFormElement;
-				const tokenInput = form.querySelector('#stats-token') as HTMLInputElement;
-				const daysInput = form.querySelector('#stats-days') as HTMLInputElement;
-				const statsContainer = document.getElementById('stats-container');
-				const token = tokenInput.value.trim();
-				const days = daysInput.value || '30';
-
-				if (!token || !statsContainer) return;
-
-				try {
-					// Determine if it's a token or API key
-					const isToken = token.startsWith('ml_');
-					const url = `/api/stats?${isToken ? 'token' : 'key'}=${encodeURIComponent(token)}&days=${days}`;
-
-					const response = await fetch(url);
-					const data = await response.json();
-
-					if (response.ok) {
-						statsContainer.innerHTML = `
-							<div class="space-y-4">
-								<div class="grid grid-cols-2 gap-4">
-									<div class="bg-blue-50 p-4 rounded-lg">
-										<div class="text-sm text-gray-600">Total Requests</div>
-										<div class="text-2xl font-bold text-blue-600">${data.totalRequests.toLocaleString()}</div>
-									</div>
-									<div class="bg-green-50 p-4 rounded-lg">
-										<div class="text-sm text-gray-600">Today</div>
-										<div class="text-2xl font-bold text-green-600">${data.todayRequests.toLocaleString()}</div>
-									</div>
-									<div class="bg-purple-50 p-4 rounded-lg">
-										<div class="text-sm text-gray-600">This Week</div>
-										<div class="text-2xl font-bold text-purple-600">${data.thisWeekRequests.toLocaleString()}</div>
-									</div>
-									<div class="bg-orange-50 p-4 rounded-lg">
-										<div class="text-sm text-gray-600">This Month</div>
-										<div class="text-2xl font-bold text-orange-600">${data.thisMonthRequests.toLocaleString()}</div>
-									</div>
-								</div>
-								${data.keys && data.keys.length > 0 ? `
-									<div class="mt-4">
-										<h4 class="font-medium text-gray-700 mb-2">Per Key Statistics</h4>
-										<div class="space-y-2">
-											${data.keys.map((key: any) => `
-												<div class="bg-gray-50 p-3 rounded border border-gray-200">
-													<div class="text-xs font-mono text-gray-500 mb-1">${key.apiKey}</div>
-													<div class="text-sm text-gray-700">Total: ${key.totalRequests} | Today: ${key.todayRequests}</div>
-												</div>
-											`).join('')}
-										</div>
-									</div>
-								` : ''}
-							</div>
-						`;
-					} else {
-						statsContainer.innerHTML = `
-							<div class="text-center py-4 text-red-600">
-								<p>${data.error || 'Failed to load statistics'}</p>
-							</div>
-						`;
-					}
-				} catch (error) {
-					if (statsContainer) {
-						statsContainer.innerHTML = `
-							<div class="text-center py-4 text-red-600">
-								<p>An error occurred. Please try again.</p>
-							</div>
-						`;
 					}
 				}
 			});
