@@ -111,39 +111,42 @@ export function generateImageUrl(
 	const baseUrl = config?.baseUrl || 'https://imagedelivery.net';
 	const accountHash = config?.accountId || '';
 
-	// Build variant string from options
-	const variantParts: string[] = [];
+	// Build transformation parameters for flexible variants
+	// Cloudflare Images uses query parameters for transformations
+	const params: string[] = [];
 
 	if (options.width) {
-		variantParts.push(`w${options.width}`);
+		params.push(`w=${options.width}`);
 	}
 	if (options.height) {
-		variantParts.push(`h${options.height}`);
+		params.push(`h=${options.height}`);
 	}
 	if (options.format) {
-		variantParts.push(`f${options.format}`);
+		params.push(`f=${options.format}`);
 	}
 	if (options.fit) {
-		variantParts.push(`fit${options.fit}`);
+		params.push(`fit=${options.fit}`);
 	}
 	if (options.quality !== undefined) {
-		variantParts.push(`q${options.quality}`);
+		params.push(`q=${options.quality}`);
 	}
 	if (options.sharpen !== undefined) {
-		variantParts.push(`sh${options.sharpen}`);
+		params.push(`sharpen=${options.sharpen}`);
 	}
 	if (options.blur !== undefined) {
-		variantParts.push(`bl${options.blur}`);
+		params.push(`blur=${options.blur}`);
 	}
-	if (options.greyscale) {
-		variantParts.push('greyscale');
-	}
-
-	const variant = variantParts.length > 0 ? variantParts.join(',') : 'public';
-
+	
+	// Cloudflare Images doesn't have native greyscale parameter
+	// We need to use a pre-defined variant or apply it differently
+	// For now, we'll note this limitation
+	
+	// Use 'public' variant with flexible transformations via query params
+	const queryString = params.length > 0 ? `?${params.join('&')}` : '';
+	
 	// Construct URL
-	// Format: https://imagedelivery.net/{accountHash}/{imageId}/{variant}
-	let url = `${baseUrl}/${accountHash}/${imageId}/${variant}`;
+	// Format: https://imagedelivery.net/{accountHash}/{imageId}/public?w=256&f=png
+	let url = `${baseUrl}/${accountHash}/${imageId}/public${queryString}`;
 
 	// Add signed URL support if needed (requires signing key)
 	if (signed && config) {

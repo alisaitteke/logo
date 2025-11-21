@@ -5,6 +5,7 @@
 import type { MiddlewareHandler } from 'astro';
 import { fetchLogo } from './lib/logo-fetcher';
 import { getCacheControlHeaders } from './lib/storage/cache';
+import { transformImage, needsTransformation } from './lib/images/transform';
 import {
 	validateEmail,
 	generateApiKey,
@@ -60,13 +61,14 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
 	}
 
 	// Handle API endpoints
-	// GET /{domain} - Fetch logo by domain
-	const domainMatch = pathname.match(/^\/([^\/]+)$/);
-	if (domainMatch && context.request.method === 'GET') {
-		const sanitizedDomain = sanitizeDomain(decodeURIComponent(domainMatch[1]));
-		if (!sanitizedDomain) {
+	// GET /get?s={query} - Fetch logo by domain or company name
+	if (pathname === '/get' && context.request.method === 'GET') {
+		const url = new URL(context.request.url);
+		const searchParam = url.searchParams.get('s');
+		
+		if (!searchParam) {
 			return createCorsResponse(
-				JSON.stringify({ error: 'Invalid domain format' }),
+				JSON.stringify({ error: 's parameter is required' }),
 				{
 					status: 400,
 					headers: { 'Content-Type': 'application/json' },
@@ -74,24 +76,39 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
 				context.request
 			);
 		}
-		return handleDomainEndpoint(context, sanitizedDomain);
-	}
-
-	// GET /name/{companyName} - Fetch logo by company name
-	const nameMatch = pathname.match(/^\/name\/([^\/]+)$/);
-	if (nameMatch && context.request.method === 'GET') {
-		const sanitizedName = sanitizeCompanyName(decodeURIComponent(nameMatch[1]));
-		if (!sanitizedName) {
-			return createCorsResponse(
-				JSON.stringify({ error: 'Invalid company name format' }),
-				{
-					status: 400,
-					headers: { 'Content-Type': 'application/json' },
-				},
-				context.request
-			);
+		
+		const query = decodeURIComponent(searchParam);
+		
+		// Determine if it's a domain or company name
+		const isDomain = query.includes('.');
+		
+		if (isDomain) {
+			const sanitizedDomain = sanitizeDomain(query);
+			if (!sanitizedDomain) {
+				return createCorsResponse(
+					JSON.stringify({ error: 'Invalid domain format' }),
+					{
+						status: 400,
+						headers: { 'Content-Type': 'application/json' },
+					},
+					context.request
+				);
+			}
+			return handleLogoEndpoint(context, sanitizedDomain, undefined);
+		} else {
+			const sanitizedName = sanitizeCompanyName(query);
+			if (!sanitizedName) {
+				return createCorsResponse(
+					JSON.stringify({ error: 'Invalid company name format' }),
+					{
+						status: 400,
+						headers: { 'Content-Type': 'application/json' },
+					},
+					context.request
+				);
+			}
+			return handleLogoEndpoint(context, undefined, sanitizedName);
 		}
-		return handleNameEndpoint(context, sanitizedName);
 	}
 
 	// Health check
@@ -162,9 +179,9 @@ function parseQueryParams(url: URL) {
 
 
 /**
- * Handle domain endpoint
+ * Handle logo endpoint (unified for domain and company name)
  */
-async function handleDomainEndpoint(context: any, domain: string) {
+async function handleLogoEndpoint(context: any, domain?: string, companyName?: string) {
 	try {
 		const url = new URL(context.request.url);
 		const params = parseQueryParams(url);
@@ -195,24 +212,18 @@ async function handleDomainEndpoint(context: any, domain: string) {
 			);
 		}
 
-		// Fetch logo
+		// Fetch logo from R2/providers
 		const result = await fetchLogo({
 			domain,
-			format: params.format,
-			size: params.size,
-			greyscale: params.greyscale,
+			companyName,
+			format: 'png', // Always fetch PNG from providers
+			size: 512, // Fetch largest size from providers
 			r2Bucket: context.locals.runtime.env.LOGOS,
 			kvNamespace: context.locals.runtime.env.API_KEYS,
 			useCache: true,
-			useCloudflareImages: true,
-			cloudflareImagesConfig: {
-				accountId: context.locals.runtime.env.CLOUDFLARE_ACCOUNT_ID || '',
-				apiToken: context.locals.runtime.env.CLOUDFLARE_IMAGES_API_TOKEN || '',
-				baseUrl: context.locals.runtime.env.CLOUDFLARE_IMAGES_BASE_URL,
-			},
 		});
 
-		if (!result.success) {
+		if (!result.success || !result.logo) {
 			return createCorsResponse(
 				JSON.stringify({ error: result.error || 'Failed to fetch logo' }),
 				{
@@ -223,39 +234,32 @@ async function handleDomainEndpoint(context: any, domain: string) {
 			);
 		}
 
-		// If Cloudflare Images URL is available, redirect to it (optimized with transformations)
-		if (result.cloudflareImagesUrl) {
-			return new Response(null, {
-				status: 302,
-				headers: {
-					'Location': result.cloudflareImagesUrl,
-					'Cache-Control': 'public, max-age=2592000', // 30 days
-				},
+		// Apply transformations if needed (size, format, greyscale)
+		let transformedLogo = result.logo;
+		if (needsTransformation({ 
+			width: params.size, 
+			height: params.size, 
+			format: params.format,
+			greyscale: params.greyscale 
+		})) {
+			transformedLogo = await transformImage(result.logo, {
+				width: params.size,
+				height: params.size,
+				format: params.format,
+				greyscale: params.greyscale,
 			});
-		}
-
-		// Fallback: Return logo from R2
-		if (!result.logo) {
-			return createCorsResponse(
-				JSON.stringify({ error: 'Logo not available' }),
-				{
-					status: 404,
-					headers: { 'Content-Type': 'application/json' },
-				},
-				context.request
-			);
 		}
 
 		// Get cache headers
 		const headers = getCacheControlHeaders(result.metadata);
 
-		// Return logo as image with CORS headers
+		// Return transformed logo with CORS headers
 		const corsHeaders = new Headers({
 			'Content-Type': `image/${params.format}`,
 			...Object.fromEntries(headers.entries()),
 		});
 		const corsResponse = createCorsResponse(
-			result.logo,
+			transformedLogo,
 			{
 				headers: corsHeaders,
 			},
@@ -310,24 +314,17 @@ async function handleNameEndpoint(context: any, companyName: string) {
 			);
 		}
 
-		// Fetch logo
+		// Fetch logo from R2/providers
 		const result = await fetchLogo({
 			companyName,
-			format: params.format,
-			size: params.size,
-			greyscale: params.greyscale,
+			format: 'png', // Always fetch PNG from providers
+			size: 512, // Fetch largest size from providers
 			r2Bucket: context.locals.runtime.env.LOGOS,
 			kvNamespace: context.locals.runtime.env.API_KEYS,
 			useCache: true,
-			useCloudflareImages: true,
-			cloudflareImagesConfig: {
-				accountId: context.locals.runtime.env.CLOUDFLARE_ACCOUNT_ID || '',
-				apiToken: context.locals.runtime.env.CLOUDFLARE_IMAGES_API_TOKEN || '',
-				baseUrl: context.locals.runtime.env.CLOUDFLARE_IMAGES_BASE_URL,
-			},
 		});
 
-		if (!result.success) {
+		if (!result.success || !result.logo) {
 			return createCorsResponse(
 				JSON.stringify({ error: result.error || 'Failed to fetch logo' }),
 				{
@@ -338,39 +335,32 @@ async function handleNameEndpoint(context: any, companyName: string) {
 			);
 		}
 
-		// If Cloudflare Images URL is available, redirect to it (optimized with transformations)
-		if (result.cloudflareImagesUrl) {
-			return new Response(null, {
-				status: 302,
-				headers: {
-					'Location': result.cloudflareImagesUrl,
-					'Cache-Control': 'public, max-age=2592000', // 30 days
-				},
+		// Apply transformations if needed (size, format, greyscale)
+		let transformedLogo = result.logo;
+		if (needsTransformation({ 
+			width: params.size, 
+			height: params.size, 
+			format: params.format,
+			greyscale: params.greyscale 
+		})) {
+			transformedLogo = await transformImage(result.logo, {
+				width: params.size,
+				height: params.size,
+				format: params.format,
+				greyscale: params.greyscale,
 			});
-		}
-
-		// Fallback: Return logo from R2
-		if (!result.logo) {
-			return createCorsResponse(
-				JSON.stringify({ error: 'Logo not available' }),
-				{
-					status: 404,
-					headers: { 'Content-Type': 'application/json' },
-				},
-				context.request
-			);
 		}
 
 		// Get cache headers
 		const headers = getCacheControlHeaders(result.metadata);
 
-		// Return logo as image with CORS headers
+		// Return transformed logo with CORS headers
 		const corsHeaders = new Headers({
 			'Content-Type': `image/${params.format}`,
 			...Object.fromEntries(headers.entries()),
 		});
 		const corsResponse = createCorsResponse(
-			result.logo,
+			transformedLogo,
 			{
 				headers: corsHeaders,
 			},

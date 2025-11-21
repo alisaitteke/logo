@@ -1,5 +1,6 @@
 ---
 // Logo CDN Homepage
+const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 ---
 
 <html lang="en">
@@ -48,6 +49,7 @@
 
 			<!-- Authenticated View (API Keys) -->
 			<div id="authenticated-view" class="hidden">
+				<!-- API Keys -->
 				<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
 					<div class="flex justify-between items-center mb-4">
 						<h2 class="text-2xl font-semibold text-gray-800 dark:text-white">Your API Key</h2>
@@ -145,6 +147,9 @@
 		</footer>
 
 		<script>
+			// Format state
+			let currentFormat = 'url';
+
 			// Check authentication status on page load
 			async function checkAuth() {
 				const loading = document.getElementById('loading');
@@ -184,6 +189,96 @@
 					if (unauthenticatedView) unauthenticatedView.classList.remove('hidden');
 				}
 			}
+
+			// Switch between URL and HTML format
+			(window as any).switchFormat = function(format: string) {
+				currentFormat = format;
+				
+				const urlBtn = document.getElementById('format-url');
+				const htmlBtn = document.getElementById('format-html');
+				const codes = document.querySelectorAll('#examples-container code');
+
+				if (format === 'url') {
+					urlBtn?.classList.add('bg-blue-600', 'dark:bg-blue-500', 'text-white');
+					urlBtn?.classList.remove('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+					htmlBtn?.classList.remove('bg-blue-600', 'dark:bg-blue-500', 'text-white');
+					htmlBtn?.classList.add('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+
+					codes.forEach((code) => {
+						const url = code.getAttribute('data-url');
+						if (url) code.textContent = url;
+					});
+				} else {
+					htmlBtn?.classList.add('bg-blue-600', 'dark:bg-blue-500', 'text-white');
+					htmlBtn?.classList.remove('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+					urlBtn?.classList.remove('bg-blue-600', 'dark:bg-blue-500', 'text-white');
+					urlBtn?.classList.add('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+
+					codes.forEach((code) => {
+						const html = code.getAttribute('data-html');
+						// Show HTML as text, not render it
+						if (html) code.textContent = html.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+					});
+				}
+			};
+
+			// Copy code to clipboard
+			(window as any).copyCode = function(button: HTMLButtonElement) {
+				const codeEl = button.previousElementSibling as HTMLElement;
+				const textToCopy = currentFormat === 'url' 
+					? codeEl.getAttribute('data-url') 
+					: codeEl.getAttribute('data-html');
+
+				if (!textToCopy) return;
+
+				// Decode HTML entities if in HTML mode
+				const finalText = currentFormat === 'html' ? textToCopy.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"') : textToCopy;
+
+				navigator.clipboard.writeText(finalText).then(() => {
+					const originalText = button.textContent;
+					button.textContent = '✓ Copied!';
+					button.classList.add('bg-green-600', 'dark:bg-green-500');
+					button.classList.remove('bg-blue-600', 'dark:bg-blue-500');
+					
+					setTimeout(() => {
+						button.textContent = originalText;
+						button.classList.remove('bg-green-600', 'dark:bg-green-500');
+						button.classList.add('bg-blue-600', 'dark:bg-blue-500');
+					}, 2000);
+				});
+			};
+
+			// Update examples based on search
+			(window as any).updateExamples = function(query: string) {
+				const codes = document.querySelectorAll('#examples-container code');
+				const images = document.querySelectorAll('#examples-container img');
+				
+				codes.forEach((code, index) => {
+					let urlAttr = code.getAttribute('data-url') || '';
+					let htmlAttr = code.getAttribute('data-html') || '';
+					
+					// Replace s= parameter value: s=shopify.com or s=shopify -> s=query
+					const newUrl = urlAttr.replace(/s=[^&]+/g, `s=${query}`);
+					const newHtml = htmlAttr.replace(/s=[^&"]+/g, `s=${query}`);
+					
+					code.setAttribute('data-url', newUrl);
+					code.setAttribute('data-html', newHtml);
+					
+					// Update displayed text based on current format
+					if (currentFormat === 'url') {
+						code.textContent = newUrl;
+					} else {
+						// Show HTML as text, not render it
+						code.textContent = newHtml.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+					}
+					
+					// Update image src
+					const img = images[index] as HTMLImageElement;
+					if (img) {
+						img.src = newUrl;
+					}
+				});
+			};
 
 			// Render API keys
 			function renderApiKeys(apiKeys: any[], statistics: Record<string, any>) {
@@ -231,12 +326,128 @@
 					`;
 				}).join('');
 
-				// Add usage example
+				// Add usage examples with preview images
 				if (apiKeys.length > 0) {
+					const apiKey = apiKeys[0]?.key || 'YOUR_API_KEY';
+					const baseUrl = window.location.origin;
+					
 					apiKeysList.innerHTML += `
 						<div class="mt-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
-							<h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-3">Usage Example</h3>
-							<pre class="bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-4 rounded overflow-x-auto text-sm"><code>&lt;img src="https://logo.alisait.com/shopify.com?key=${apiKeys[0]?.key || 'YOUR_API_KEY'}&format=png" alt="Shopify logo" /&gt;</code></pre>
+							<!-- Search Input -->
+							<div class="mb-4">
+								<label for="logo-search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+									Try with different domain or company name
+								</label>
+								<div class="flex gap-2">
+									<input
+										type="text"
+										id="logo-search"
+										placeholder="e.g., apple.com or apple"
+										value="shopify.com"
+										class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+									/>
+									<button
+										id="search-btn"
+										class="px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+									>
+										Update
+									</button>
+								</div>
+							</div>
+
+							<div class="flex justify-between items-center mb-4 border-t border-blue-200 dark:border-blue-800 pt-4">
+								<h3 class="text-xl font-semibold text-gray-800 dark:text-white">Usage Examples</h3>
+								<div class="flex gap-2">
+									<button onclick="window.switchFormat('url')" id="format-url" class="px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-sm">URL</button>
+									<button onclick="window.switchFormat('html')" id="format-html" class="px-3 py-1 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded text-sm">HTML</button>
+								</div>
+							</div>
+							
+							<div class="space-y-4" id="examples-container">
+								<!-- Standard -->
+								<div class="flex items-start gap-3">
+									<img src="${baseUrl}/get?s=shopify.com&key=${apiKey}" alt="Standard" class="w-16 h-16 object-contain bg-white dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 p-2" />
+									<div class="flex-1">
+										<p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Standard (256px PNG)</p>
+										<div class="relative">
+											<code class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all" data-url="${baseUrl}/get?s=shopify.com&key=${apiKey}" data-html='&lt;img src="${baseUrl}/get?s=shopify.com&key=${apiKey}" alt="Logo" /&gt;'>${baseUrl}/get?s=shopify.com&key=${apiKey}</code>
+											<button onclick="window.copyCode(this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
+										</div>
+									</div>
+								</div>
+
+								<!-- Small Size -->
+								<div class="flex items-start gap-3">
+									<img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=64" alt="Small" class="w-16 h-16 object-contain bg-white dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 p-2" />
+									<div class="flex-1">
+										<p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Small (64px)</p>
+										<div class="relative">
+											<code class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all" data-url="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=64" data-html='&lt;img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=64" alt="Logo" /&gt;'>${baseUrl}/get?s=shopify.com&key=${apiKey}&size=64</code>
+											<button onclick="window.copyCode(this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
+										</div>
+									</div>
+								</div>
+
+								<!-- Large Size -->
+								<div class="flex items-start gap-3">
+									<img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=512" alt="Large" class="w-16 h-16 object-contain bg-white dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 p-2" />
+									<div class="flex-1">
+										<p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Large (512px)</p>
+										<div class="relative">
+											<code class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all" data-url="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=512" data-html='&lt;img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=512" alt="Logo" /&gt;'>${baseUrl}/get?s=shopify.com&key=${apiKey}&size=512</code>
+											<button onclick="window.copyCode(this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
+										</div>
+									</div>
+								</div>
+
+								<!-- Greyscale -->
+								<div class="flex items-start gap-3">
+									<img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&greyscale=true" alt="Greyscale" class="w-16 h-16 object-contain bg-white dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 p-2" />
+									<div class="flex-1">
+										<p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Greyscale</p>
+										<div class="relative">
+											<code class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all" data-url="${baseUrl}/get?s=shopify.com&key=${apiKey}&greyscale=true" data-html='&lt;img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&greyscale=true" alt="Logo" /&gt;'>${baseUrl}/get?s=shopify.com&key=${apiKey}&greyscale=true</code>
+											<button onclick="window.copyCode(this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
+										</div>
+									</div>
+								</div>
+
+								<!-- WebP Format -->
+								<div class="flex items-start gap-3">
+									<img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&format=webp" alt="WebP" class="w-16 h-16 object-contain bg-white dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 p-2" />
+									<div class="flex-1">
+										<p class="text-sm text-gray-600 dark:text-gray-400 mb-1">WebP Format</p>
+										<div class="relative">
+											<code class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all" data-url="${baseUrl}/get?s=shopify.com&key=${apiKey}&format=webp" data-html='&lt;img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&format=webp" alt="Logo" /&gt;'>${baseUrl}/get?s=shopify.com&key=${apiKey}&format=webp</code>
+											<button onclick="window.copyCode(this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
+										</div>
+									</div>
+								</div>
+
+								<!-- Combined -->
+								<div class="flex items-start gap-3">
+									<img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=128&greyscale=true" alt="Combined" class="w-16 h-16 object-contain bg-white dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 p-2" />
+									<div class="flex-1">
+										<p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Combined (128px + Greyscale)</p>
+										<div class="relative">
+											<code class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all" data-url="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=128&greyscale=true" data-html='&lt;img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=128&greyscale=true" alt="Logo" /&gt;'>${baseUrl}/get?s=shopify.com&key=${apiKey}&size=128&greyscale=true</code>
+											<button onclick="window.copyCode(this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
+										</div>
+									</div>
+								</div>
+
+								<!-- By Name -->
+								<div class="flex items-start gap-3">
+									<img src="${baseUrl}/get?s=shopify&key=${apiKey}" alt="By name" class="w-16 h-16 object-contain bg-white dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 p-2" />
+									<div class="flex-1">
+										<p class="text-sm text-gray-600 dark:text-gray-400 mb-1">By Company Name</p>
+										<div class="relative">
+											<code class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all" data-url="${baseUrl}/get?s=shopify&key=${apiKey}" data-html='&lt;img src="${baseUrl}/get?s=shopify&key=${apiKey}" alt="Logo" /&gt;'>${baseUrl}/get?s=shopify&key=${apiKey}</code>
+											<button onclick="window.copyCode(this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
+										</div>
+									</div>
+								</div>
+							</div>
 						</div>
 					`;
 				}
@@ -249,6 +460,60 @@
 				});
 			}
 
+			// Switch between URL and HTML format
+			function switchFormat(format: string) {
+				currentFormat = format;
+				
+				const urlBtn = document.getElementById('format-url');
+				const htmlBtn = document.getElementById('format-html');
+				const codes = document.querySelectorAll('#examples-container code');
+
+				if (format === 'url') {
+					urlBtn?.classList.add('bg-blue-600', 'dark:bg-blue-500', 'text-white');
+					urlBtn?.classList.remove('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+					htmlBtn?.classList.remove('bg-blue-600', 'dark:bg-blue-500', 'text-white');
+					htmlBtn?.classList.add('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+
+					codes.forEach((code) => {
+						const url = code.getAttribute('data-url');
+						if (url) code.textContent = url;
+					});
+				} else {
+					htmlBtn?.classList.add('bg-blue-600', 'dark:bg-blue-500', 'text-white');
+					htmlBtn?.classList.remove('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+					urlBtn?.classList.remove('bg-blue-600', 'dark:bg-blue-500', 'text-white');
+					urlBtn?.classList.add('bg-gray-300', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+
+					codes.forEach((code) => {
+						const html = code.getAttribute('data-html');
+						if (html) code.innerHTML = html;
+					});
+				}
+			}
+
+			// Copy code to clipboard
+			function copyCode(button: HTMLButtonElement) {
+				const codeEl = button.previousElementSibling as HTMLElement;
+				const textToCopy = currentFormat === 'url' 
+					? codeEl.getAttribute('data-url') 
+					: codeEl.getAttribute('data-html');
+
+				if (!textToCopy) return;
+
+				navigator.clipboard.writeText(textToCopy).then(() => {
+					const originalText = button.textContent;
+					button.textContent = '✓ Copied!';
+					button.classList.add('bg-green-600', 'dark:bg-green-500');
+					button.classList.remove('bg-blue-600', 'dark:bg-blue-500');
+					
+					setTimeout(() => {
+						button.textContent = originalText;
+						button.classList.remove('bg-green-600', 'dark:bg-green-500');
+						button.classList.add('bg-blue-600', 'dark:bg-blue-500');
+					}, 2000);
+				});
+			}
+
 			// Logout handler
 			document.getElementById('logout-btn')?.addEventListener('click', () => {
 				// Clear cookie
@@ -256,6 +521,7 @@
 				// Reload page
 				window.location.reload();
 			});
+
 
 			// Send Magic Link Form Handler
 			document.getElementById('request-key-form')?.addEventListener('submit', async (e) => {
@@ -316,6 +582,29 @@
 					if (submitBtn) submitBtn.disabled = false;
 					if (submitText) submitText.textContent = 'Send Magic Link';
 					if (submitLoader) submitLoader.classList.add('hidden');
+				}
+			});
+
+			// Search handler - updates examples with new domain/company
+			document.addEventListener('click', (e) => {
+				const target = e.target as HTMLElement;
+				if (target.id === 'search-btn') {
+					const searchInput = document.getElementById('logo-search') as HTMLInputElement;
+					const query = searchInput.value.trim();
+					if (query) {
+						(window as any).updateExamples(query);
+					}
+				}
+			});
+
+			document.addEventListener('keypress', (e) => {
+				const target = e.target as HTMLElement;
+				if (target.id === 'logo-search' && (e as KeyboardEvent).key === 'Enter') {
+					const searchInput = target as HTMLInputElement;
+					const query = searchInput.value.trim();
+					if (query) {
+						(window as any).updateExamples(query);
+					}
 				}
 			});
 
