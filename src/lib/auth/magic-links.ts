@@ -96,11 +96,13 @@ export async function getMagicLinkToken(
  * Validate magic link token
  * @param kvNamespace - KV namespace for magic links
  * @param token - Token to validate
+ * @param checkUsed - Whether to check if token has been used (default: true)
  * @returns Validation result with token data if valid
  */
 export async function validateMagicLinkToken(
 	kvNamespace: KVNamespace,
-	token: string
+	token: string,
+	checkUsed = true
 ): Promise<{ valid: boolean; tokenData?: MagicLinkToken; error?: string }> {
 	const tokenData = await getMagicLinkToken(kvNamespace, token);
 
@@ -108,7 +110,9 @@ export async function validateMagicLinkToken(
 		return { valid: false, error: 'Invalid or expired token' };
 	}
 
-	if (tokenData.used) {
+	// Only check 'used' status if checkUsed is true (for magic link clicks)
+	// Skip this check for cookie-based authentication
+	if (checkUsed && tokenData.used) {
 		return { valid: false, error: 'Token has already been used' };
 	}
 

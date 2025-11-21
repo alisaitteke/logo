@@ -377,23 +377,32 @@ async function handleRequestKeyEndpoint(context: any) {
 			);
 		}
 
-		// Generate API key
-		const apiKey = generateApiKey();
-		const keyData: ApiKeyData = {
-			key: apiKey,
-			email,
-			createdAt: new Date().toISOString(),
-			requestCount: 0,
-		};
+		// Check if user already has an API key
+		const existingKeys = await getApiKeysByEmail(context.locals.runtime.env.API_KEYS, email);
+		
+		let apiKey: string;
+		if (existingKeys && existingKeys.length > 0) {
+			// User already has a key, use the existing one
+			apiKey = existingKeys[0].key;
+		} else {
+			// Generate new API key for new user
+			apiKey = generateApiKey();
+			const keyData: ApiKeyData = {
+				key: apiKey,
+				email,
+				createdAt: new Date().toISOString(),
+				requestCount: 0,
+			};
 
-		// Store in KV
-		const stored = await storeApiKey(context.locals.runtime.env.API_KEYS, keyData);
+			// Store in KV
+			const stored = await storeApiKey(context.locals.runtime.env.API_KEYS, keyData);
 
-		if (!stored) {
-			return createErrorHttpResponse(
-				CommonErrors.internalServerError('Failed to store API key. Please try again.'),
-				context.request
-			);
+			if (!stored) {
+				return createErrorHttpResponse(
+					CommonErrors.internalServerError('Failed to store API key. Please try again.'),
+					context.request
+				);
+			}
 		}
 
 		// Generate magic link token
@@ -564,10 +573,11 @@ async function handleDashboardDataEndpoint(context: any) {
 			);
 		}
 
-		// Validate token
+		// Validate token (skip 'used' check for cookie-based auth)
 		const validation = await validateMagicLinkToken(
 			context.locals.runtime.env.MAGIC_LINKS,
-			token
+			token,
+			false // Don't check 'used' status for cookie authentication
 		);
 
 		if (!validation.valid || !validation.tokenData) {
