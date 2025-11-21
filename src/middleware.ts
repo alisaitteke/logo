@@ -204,11 +204,40 @@ async function handleDomainEndpoint(context: any, domain: string) {
 			r2Bucket: context.locals.runtime.env.LOGOS,
 			kvNamespace: context.locals.runtime.env.API_KEYS,
 			useCache: true,
+			useCloudflareImages: true,
+			cloudflareImagesConfig: {
+				accountId: context.locals.runtime.env.CLOUDFLARE_ACCOUNT_ID || '',
+				apiToken: context.locals.runtime.env.CLOUDFLARE_IMAGES_API_TOKEN || '',
+				baseUrl: context.locals.runtime.env.CLOUDFLARE_IMAGES_BASE_URL,
+			},
 		});
 
-		if (!result.success || !result.logo) {
+		if (!result.success) {
 			return createCorsResponse(
 				JSON.stringify({ error: result.error || 'Failed to fetch logo' }),
+				{
+					status: 404,
+					headers: { 'Content-Type': 'application/json' },
+				},
+				context.request
+			);
+		}
+
+		// If Cloudflare Images URL is available, redirect to it (optimized with transformations)
+		if (result.cloudflareImagesUrl) {
+			return new Response(null, {
+				status: 302,
+				headers: {
+					'Location': result.cloudflareImagesUrl,
+					'Cache-Control': 'public, max-age=2592000', // 30 days
+				},
+			});
+		}
+
+		// Fallback: Return logo from R2
+		if (!result.logo) {
+			return createCorsResponse(
+				JSON.stringify({ error: 'Logo not available' }),
 				{
 					status: 404,
 					headers: { 'Content-Type': 'application/json' },
@@ -290,11 +319,40 @@ async function handleNameEndpoint(context: any, companyName: string) {
 			r2Bucket: context.locals.runtime.env.LOGOS,
 			kvNamespace: context.locals.runtime.env.API_KEYS,
 			useCache: true,
+			useCloudflareImages: true,
+			cloudflareImagesConfig: {
+				accountId: context.locals.runtime.env.CLOUDFLARE_ACCOUNT_ID || '',
+				apiToken: context.locals.runtime.env.CLOUDFLARE_IMAGES_API_TOKEN || '',
+				baseUrl: context.locals.runtime.env.CLOUDFLARE_IMAGES_BASE_URL,
+			},
 		});
 
-		if (!result.success || !result.logo) {
+		if (!result.success) {
 			return createCorsResponse(
 				JSON.stringify({ error: result.error || 'Failed to fetch logo' }),
+				{
+					status: 404,
+					headers: { 'Content-Type': 'application/json' },
+				},
+				context.request
+			);
+		}
+
+		// If Cloudflare Images URL is available, redirect to it (optimized with transformations)
+		if (result.cloudflareImagesUrl) {
+			return new Response(null, {
+				status: 302,
+				headers: {
+					'Location': result.cloudflareImagesUrl,
+					'Cache-Control': 'public, max-age=2592000', // 30 days
+				},
+			});
+		}
+
+		// Fallback: Return logo from R2
+		if (!result.logo) {
+			return createCorsResponse(
+				JSON.stringify({ error: 'Logo not available' }),
 				{
 					status: 404,
 					headers: { 'Content-Type': 'application/json' },
