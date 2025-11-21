@@ -41,7 +41,7 @@ export function generateMagicLinkEmail(data: MagicLinkEmailData): EmailMessage {
 		<p style="font-size: 12px; color: #666;">This link will expire in 24 hours.</p>
 		<p style="font-size: 12px; color: #666;">If you didn't request this, please ignore this email.</p>
 		<hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
-		<p style="font-size: 12px; color: #999;">Logo CDN Service</p>
+		<p style="font-size: 12px; color: #999;">Logo Service</p>
 	</div>
 </body>
 </html>
