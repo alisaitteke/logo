@@ -147,8 +147,82 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 		</footer>
 
 		<script>
-			// Format state
-			let currentFormat = 'url';
+			// Update preview and examples
+			(window as any).updatePreview = function() {
+				const searchInput = document.getElementById('logo-search') as HTMLInputElement;
+				const sizeSelect = document.getElementById('size-select') as HTMLSelectElement;
+				const formatSelect = document.getElementById('format-select') as HTMLSelectElement;
+				const greyscaleCheck = document.getElementById('greyscale-check') as HTMLInputElement;
+				const previewImg = document.getElementById('preview-img') as HTMLImageElement;
+				const previewLoader = document.getElementById('preview-loader');
+				const urlExample = document.getElementById('url-example');
+				const htmlExample = document.getElementById('html-example');
+				
+				const query = searchInput?.value.trim() || 'shopify.com';
+				const size = sizeSelect?.value || '256';
+				const format = formatSelect?.value || 'png';
+				const greyscale = greyscaleCheck?.checked || false;
+				
+				// Get API key
+				const apiKeyEl = document.querySelector('#api-keys-list .font-mono');
+				const apiKey = apiKeyEl?.textContent?.trim() || '';
+				
+				const baseUrl = window.location.origin;
+				
+				// Build URL with parameters
+				let url = `${baseUrl}/get?s=${query}&key=${apiKey}`;
+				if (size !== '256') url += `&size=${size}`;
+				if (format !== 'png') url += `&format=${format}`;
+				if (greyscale) url += `&greyscale=true`;
+				
+				// Show loader
+				if (previewLoader) previewLoader.classList.remove('hidden');
+				
+				// Update preview
+				if (previewImg) {
+					previewImg.onload = () => {
+						if (previewLoader) previewLoader.classList.add('hidden');
+					};
+					previewImg.onerror = () => {
+						if (previewLoader) previewLoader.classList.add('hidden');
+					};
+					previewImg.src = url;
+					previewImg.style.maxHeight = `${size}px`;
+				}
+				
+				// Update URL example
+				if (urlExample) {
+					urlExample.textContent = url;
+				}
+				
+				// Update HTML example
+				if (htmlExample) {
+					const htmlCode = `<img src="${url}" alt="Logo" />`;
+					htmlExample.textContent = htmlCode;
+				}
+			};
+
+			// Copy text to clipboard
+			(window as any).copyText = function(text: string, button: HTMLButtonElement) {
+				navigator.clipboard.writeText(text).then(() => {
+					const originalText = button.textContent;
+					button.textContent = '✓ Copied!';
+					button.classList.add('bg-green-600', 'dark:bg-green-500');
+					button.classList.remove('bg-blue-600', 'dark:bg-blue-500');
+					
+					setTimeout(() => {
+						button.textContent = originalText;
+						button.classList.remove('bg-green-600', 'dark:bg-green-500');
+						button.classList.add('bg-blue-600', 'dark:bg-blue-500');
+					}, 2000);
+				});
+			};
+
+			// Copy HTML to clipboard
+			(window as any).copyHtml = function(codeEl: HTMLElement, button: HTMLButtonElement) {
+				const text = codeEl.textContent || '';
+				(window as any).copyText(text, button);
+			};
 
 			// Check authentication status on page load
 			async function checkAuth() {
@@ -177,6 +251,11 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 
 						// Render API keys
 						renderApiKeys(data.apiKeys, data.statistics);
+						
+						// Setup event listeners after rendering
+						setTimeout(() => {
+							setupEventListeners();
+						}, 100);
 					} else {
 						// Show unauthenticated view
 						if (authenticatedView) authenticatedView.classList.add('hidden');
@@ -187,6 +266,38 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 					if (loading) loading.classList.add('hidden');
 					if (authenticatedView) authenticatedView.classList.add('hidden');
 					if (unauthenticatedView) unauthenticatedView.classList.remove('hidden');
+				}
+			}
+
+			// Setup event listeners
+			function setupEventListeners() {
+				const logoSearch = document.getElementById('logo-search');
+				const sizeSelect = document.getElementById('size-select');
+				const formatSelect = document.getElementById('format-select');
+				const greyscaleCheck = document.getElementById('greyscale-check');
+
+				if (logoSearch) {
+					logoSearch.addEventListener('input', () => {
+						(window as any).updatePreview();
+					});
+				}
+
+				if (sizeSelect) {
+					sizeSelect.addEventListener('change', () => {
+						(window as any).updatePreview();
+					});
+				}
+
+				if (formatSelect) {
+					formatSelect.addEventListener('change', () => {
+						(window as any).updatePreview();
+					});
+				}
+
+				if (greyscaleCheck) {
+					greyscaleCheck.addEventListener('change', () => {
+						(window as any).updatePreview();
+					});
 				}
 			}
 
@@ -333,118 +444,102 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 					
 					apiKeysList.innerHTML += `
 						<div class="mt-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
-							<!-- Search Input -->
+							<!-- Controls -->
+							<!-- Search Input (Full Width) -->
 							<div class="mb-4">
-								<label for="logo-search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-									Try with different domain or company name
+								<label for="logo-search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+									Domain / Company
 								</label>
-								<div class="flex gap-2">
-									<input
-										type="text"
-										id="logo-search"
-										placeholder="e.g., apple.com or apple"
-										value="shopify.com"
-										class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-									/>
-									<button
-										id="search-btn"
-										class="px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+								<input
+									type="text"
+									id="logo-search"
+									placeholder="e.g., apple.com or apple"
+									value="shopify.com"
+									class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+								/>
+							</div>
+
+							<!-- Other Controls -->
+							<div class="grid grid-cols-3 gap-4 mb-4">
+								<!-- Size Selector -->
+								<div>
+									<label for="size-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+										Size
+									</label>
+									<select
+										id="size-select"
+										class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
 									>
-										Update
-									</button>
+										<option value="64">64px</option>
+										<option value="128">128px</option>
+										<option value="256" selected>256px</option>
+										<option value="512">512px</option>
+									</select>
+								</div>
+
+								<!-- Format Selector -->
+								<div>
+									<label for="format-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+										Format
+									</label>
+									<select
+										id="format-select"
+										class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+									>
+										<option value="png" selected>PNG</option>
+										<option value="webp">WebP</option>
+										<option value="jpeg">JPEG</option>
+									</select>
+								</div>
+
+								<!-- Greyscale Checkbox -->
+								<div>
+									<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+										Options
+									</label>
+									<div class="flex items-center h-[38px]">
+										<input
+											type="checkbox"
+											id="greyscale-check"
+											class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+										/>
+										<label for="greyscale-check" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+											Greyscale
+										</label>
+									</div>
 								</div>
 							</div>
 
-							<div class="flex justify-between items-center mb-4 border-t border-blue-200 dark:border-blue-800 pt-4">
-								<h3 class="text-xl font-semibold text-gray-800 dark:text-white">Usage Examples</h3>
-								<div class="flex gap-2">
-									<button onclick="window.switchFormat('url')" id="format-url" class="px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-sm">URL</button>
-									<button onclick="window.switchFormat('html')" id="format-html" class="px-3 py-1 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded text-sm">HTML</button>
+							<!-- Preview -->
+							<div class="mb-4 pb-4 border-b border-blue-200 dark:border-blue-800">
+								<p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview:</p>
+								<div class="relative flex justify-center items-center bg-white dark:bg-gray-700 rounded-lg p-8 min-h-[200px]">
+									<div id="preview-loader" class="hidden absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-700/80 rounded-lg">
+										<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+									</div>
+									<img id="preview-img" src="${baseUrl}/get?s=shopify.com&key=${apiKey}" alt="Logo preview" class="max-w-full" style="max-height: 256px;" />
 								</div>
 							</div>
-							
-							<div class="space-y-4" id="examples-container">
-								<!-- Standard -->
-								<div class="flex items-start gap-3">
-									<img src="${baseUrl}/get?s=shopify.com&key=${apiKey}" alt="Standard" class="w-16 h-16 object-contain bg-white dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 p-2" />
-									<div class="flex-1">
-										<p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Standard (256px PNG)</p>
-										<div class="relative">
-											<code class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all" data-url="${baseUrl}/get?s=shopify.com&key=${apiKey}" data-html='&lt;img src="${baseUrl}/get?s=shopify.com&key=${apiKey}" alt="Logo" /&gt;'>${baseUrl}/get?s=shopify.com&key=${apiKey}</code>
-											<button onclick="window.copyCode(this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
-										</div>
+
+							<!-- Examples -->
+							<div>
+								<h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">Usage Examples</h3>
+								
+								<!-- URL Example -->
+								<div class="mb-3">
+									<p class="text-xs text-gray-600 dark:text-gray-400 mb-1">URL:</p>
+									<div class="relative">
+										<code id="url-example" class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all">${baseUrl}/get?s=shopify.com&key=${apiKey}</code>
+										<button onclick="window.copyText(document.getElementById('url-example').textContent, this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
 									</div>
 								</div>
 
-								<!-- Small Size -->
-								<div class="flex items-start gap-3">
-									<img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=64" alt="Small" class="w-16 h-16 object-contain bg-white dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 p-2" />
-									<div class="flex-1">
-										<p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Small (64px)</p>
-										<div class="relative">
-											<code class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all" data-url="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=64" data-html='&lt;img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=64" alt="Logo" /&gt;'>${baseUrl}/get?s=shopify.com&key=${apiKey}&size=64</code>
-											<button onclick="window.copyCode(this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
-										</div>
-									</div>
-								</div>
-
-								<!-- Large Size -->
-								<div class="flex items-start gap-3">
-									<img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=512" alt="Large" class="w-16 h-16 object-contain bg-white dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 p-2" />
-									<div class="flex-1">
-										<p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Large (512px)</p>
-										<div class="relative">
-											<code class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all" data-url="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=512" data-html='&lt;img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=512" alt="Logo" /&gt;'>${baseUrl}/get?s=shopify.com&key=${apiKey}&size=512</code>
-											<button onclick="window.copyCode(this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
-										</div>
-									</div>
-								</div>
-
-								<!-- Greyscale -->
-								<div class="flex items-start gap-3">
-									<img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&greyscale=true" alt="Greyscale" class="w-16 h-16 object-contain bg-white dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 p-2" />
-									<div class="flex-1">
-										<p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Greyscale</p>
-										<div class="relative">
-											<code class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all" data-url="${baseUrl}/get?s=shopify.com&key=${apiKey}&greyscale=true" data-html='&lt;img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&greyscale=true" alt="Logo" /&gt;'>${baseUrl}/get?s=shopify.com&key=${apiKey}&greyscale=true</code>
-											<button onclick="window.copyCode(this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
-										</div>
-									</div>
-								</div>
-
-								<!-- WebP Format -->
-								<div class="flex items-start gap-3">
-									<img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&format=webp" alt="WebP" class="w-16 h-16 object-contain bg-white dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 p-2" />
-									<div class="flex-1">
-										<p class="text-sm text-gray-600 dark:text-gray-400 mb-1">WebP Format</p>
-										<div class="relative">
-											<code class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all" data-url="${baseUrl}/get?s=shopify.com&key=${apiKey}&format=webp" data-html='&lt;img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&format=webp" alt="Logo" /&gt;'>${baseUrl}/get?s=shopify.com&key=${apiKey}&format=webp</code>
-											<button onclick="window.copyCode(this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
-										</div>
-									</div>
-								</div>
-
-								<!-- Combined -->
-								<div class="flex items-start gap-3">
-									<img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=128&greyscale=true" alt="Combined" class="w-16 h-16 object-contain bg-white dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 p-2" />
-									<div class="flex-1">
-										<p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Combined (128px + Greyscale)</p>
-										<div class="relative">
-											<code class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all" data-url="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=128&greyscale=true" data-html='&lt;img src="${baseUrl}/get?s=shopify.com&key=${apiKey}&size=128&greyscale=true" alt="Logo" /&gt;'>${baseUrl}/get?s=shopify.com&key=${apiKey}&size=128&greyscale=true</code>
-											<button onclick="window.copyCode(this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
-										</div>
-									</div>
-								</div>
-
-								<!-- By Name -->
-								<div class="flex items-start gap-3">
-									<img src="${baseUrl}/get?s=shopify&key=${apiKey}" alt="By name" class="w-16 h-16 object-contain bg-white dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 p-2" />
-									<div class="flex-1">
-										<p class="text-sm text-gray-600 dark:text-gray-400 mb-1">By Company Name</p>
-										<div class="relative">
-											<code class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all" data-url="${baseUrl}/get?s=shopify&key=${apiKey}" data-html='&lt;img src="${baseUrl}/get?s=shopify&key=${apiKey}" alt="Logo" /&gt;'>${baseUrl}/get?s=shopify&key=${apiKey}</code>
-											<button onclick="window.copyCode(this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
-										</div>
+								<!-- HTML Example -->
+								<div>
+									<p class="text-xs text-gray-600 dark:text-gray-400 mb-1">HTML:</p>
+									<div class="relative">
+										<code id="html-example" class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all">&lt;img src="${baseUrl}/get?s=shopify.com&key=${apiKey}" alt="Logo" /&gt;</code>
+										<button onclick="window.copyHtml(document.getElementById('html-example'), this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
 									</div>
 								</div>
 							</div>
@@ -585,28 +680,6 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 				}
 			});
 
-			// Search handler - updates examples with new domain/company
-			document.addEventListener('click', (e) => {
-				const target = e.target as HTMLElement;
-				if (target.id === 'search-btn') {
-					const searchInput = document.getElementById('logo-search') as HTMLInputElement;
-					const query = searchInput.value.trim();
-					if (query) {
-						(window as any).updateExamples(query);
-					}
-				}
-			});
-
-			document.addEventListener('keypress', (e) => {
-				const target = e.target as HTMLElement;
-				if (target.id === 'logo-search' && (e as KeyboardEvent).key === 'Enter') {
-					const searchInput = target as HTMLInputElement;
-					const query = searchInput.value.trim();
-					if (query) {
-						(window as any).updateExamples(query);
-					}
-				}
-			});
 
 			// Check auth on page load
 			checkAuth();
