@@ -122,7 +122,7 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 				const urlExample = document.getElementById('url-example');
 				const htmlExample = document.getElementById('html-example');
 				
-				const query = searchInput?.value.trim() || 'shopify.com';
+				const query = searchInput?.value.trim() || 'peta';
 				const size = sizeSelect?.value || '256';
 				const format = formatSelect?.value || 'png';
 				const greyscale = greyscaleCheck?.checked || false;
@@ -251,10 +251,10 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 							clearTimeout(debounceTimer);
 						}
 						
-						// Set new timer - wait 2 seconds before updating
+						// Set new timer - wait 600ms before updating
 						debounceTimer = setTimeout(() => {
 							(window as any).updatePreview();
-						}, 2000) as any;
+						}, 600) as any;
 					});
 				}
 
@@ -344,7 +344,7 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 					let urlAttr = code.getAttribute('data-url') || '';
 					let htmlAttr = code.getAttribute('data-html') || '';
 					
-					// Replace s= parameter value: s=shopify.com or s=shopify -> s=query
+					// Replace s= parameter value: s=peta or s=peta -> s=query
 					const newUrl = urlAttr.replace(/s=[^&]+/g, `s=${query}`);
 					const newHtml = htmlAttr.replace(/s=[^&"]+/g, `s=${query}`);
 					
@@ -430,7 +430,7 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 									type="text"
 									id="logo-search"
 									placeholder="e.g., apple.com or apple"
-									value="shopify.com"
+									value="peta"
 									class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
 								/>
 							</div>
@@ -493,7 +493,7 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 									<div id="preview-loader" class="hidden absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-700/80 rounded-lg">
 										<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
 									</div>
-									<img id="preview-img" src="${baseUrl}/get?s=shopify.com&key=${apiKey}" alt="Logo preview" class="max-w-full" style="max-height: 256px;" />
+									<img id="preview-img" src="${baseUrl}/get?s=peta&key=${apiKey}" alt="Logo preview" class="max-w-full" style="max-height: 256px;" />
 								</div>
 							</div>
 
@@ -505,7 +505,7 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 								<div class="mb-3">
 									<p class="text-xs text-gray-600 dark:text-gray-400 mb-1">URL:</p>
 									<div class="relative">
-										<code id="url-example" class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all">${baseUrl}/get?s=shopify.com&key=${apiKey}</code>
+										<code id="url-example" class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all">${baseUrl}/get?s=peta&key=${apiKey}</code>
 										<button onclick="window.copyText(document.getElementById('url-example').textContent, this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
 									</div>
 								</div>
@@ -514,7 +514,7 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 								<div>
 									<p class="text-xs text-gray-600 dark:text-gray-400 mb-1">HTML:</p>
 									<div class="relative">
-										<code id="html-example" class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all">&lt;img src="${baseUrl}/get?s=shopify.com&key=${apiKey}" alt="Logo" /&gt;</code>
+										<code id="html-example" class="block bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 pr-20 rounded text-xs break-all">&lt;img src="${baseUrl}/get?s=peta&key=${apiKey}" alt="Logo" /&gt;</code>
 										<button onclick="window.copyHtml(document.getElementById('html-example'), this)" class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded text-xs hover:bg-blue-700 dark:hover:bg-blue-600">Copy</button>
 									</div>
 								</div>
