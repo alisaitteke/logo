@@ -4,7 +4,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "tiny-sun-81ea",
+	"name": "logo",
 	"compatibility_date": "2025-10-08",
 	"compatibility_flags": [
 		"nodejs_compat"
@@ -78,7 +78,7 @@
 	/**
 	 * Note: Use secrets to store sensitive data.
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/secrets/
-	 * 
+	 *
 	 * Secrets to be set via: wrangler secret put SECRET_NAME
 	 * Required secrets:
 	 * - CLOUDFLARE_ACCOUNT_ID
