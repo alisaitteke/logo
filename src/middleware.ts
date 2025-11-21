@@ -132,6 +132,11 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
 		return handleStatsEndpoint(context);
 	}
 
+	// GET /api/dashboard-data - Get authenticated user's API keys and stats
+	if (pathname === '/api/dashboard-data' && context.request.method === 'GET') {
+		return handleDashboardDataEndpoint(context);
+	}
+
 	// Continue with normal Astro handling
 	return next();
 };
@@ -469,101 +474,8 @@ async function handleRequestKeyEndpoint(context: any) {
 }
 
 /**
- * Generate HTML page for displaying API keys and statistics
- */
-function generateApiKeyPage(email: string, apiKeys: ApiKeyData[], stats: Record<string, any>, token: string): string {
-	const apiKeysHtml = apiKeys.map((keyData) => {
-		const keyStats = stats[keyData.key] || {};
-		const createdAt = new Date(keyData.createdAt).toLocaleDateString('tr-TR');
-		const lastUsed = keyData.lastUsed ? new Date(keyData.lastUsed).toLocaleDateString('tr-TR') : 'Never';
-		
-		return `
-			<div class="bg-white rounded-lg shadow-md p-6 mb-4">
-				<div class="flex justify-between items-start mb-4">
-					<div>
-						<h3 class="text-lg font-semibold text-gray-800 mb-2">API Key</h3>
-						<div class="bg-gray-100 p-3 rounded-md font-mono text-sm break-all">
-							${keyData.key}
-						</div>
-						<button 
-							onclick="copyToClipboard('${keyData.key}')" 
-							class="mt-2 text-sm text-blue-600 hover:text-blue-800"
-						>
-							Copy to Clipboard
-						</button>
-					</div>
-				</div>
-				<div class="grid grid-cols-2 gap-4 mt-4">
-					<div>
-						<p class="text-sm text-gray-600">Created</p>
-						<p class="font-medium">${createdAt}</p>
-					</div>
-					<div>
-						<p class="text-sm text-gray-600">Last Used</p>
-						<p class="font-medium">${lastUsed}</p>
-					</div>
-					<div>
-						<p class="text-sm text-gray-600">Today's Requests</p>
-						<p class="font-medium">${keyStats.todayRequests || 0}</p>
-					</div>
-					<div>
-						<p class="text-sm text-gray-600">Total Requests</p>
-						<p class="font-medium">${keyStats.totalRequests || 0}</p>
-					</div>
-				</div>
-			</div>
-		`;
-	}).join('');
-
-	return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Logo CDN - API Keys</title>
-	<script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="min-h-screen bg-gray-50">
-	<div class="container mx-auto px-4 py-8 max-w-4xl">
-		<header class="mb-8">
-			<h1 class="text-4xl font-bold text-gray-900 mb-2">Logo CDN API Keys</h1>
-			<p class="text-gray-600">Email: ${email}</p>
-		</header>
-
-		<div id="success-message" class="hidden mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded"></div>
-
-		${apiKeys.length > 0 ? apiKeysHtml : '<p class="text-gray-600">No API keys found.</p>'}
-
-		<div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-			<h2 class="text-xl font-semibold text-gray-800 mb-3">Usage Example</h2>
-			<pre class="bg-gray-800 text-green-400 p-4 rounded overflow-x-auto"><code>&lt;img src="https://logo.alisait.com/shopify.com?key=${apiKeys[0]?.key || 'YOUR_API_KEY'}&format=png" alt="Shopify logo" /&gt;</code></pre>
-		</div>
-
-		<div class="mt-6 text-center">
-			<a href="/dashboard" class="text-blue-600 hover:text-blue-800">Go to Dashboard</a>
-		</div>
-	</div>
-
-	<script>
-		function copyToClipboard(text) {
-			navigator.clipboard.writeText(text).then(() => {
-				const messageEl = document.getElementById('success-message');
-				messageEl.textContent = 'API key copied to clipboard!';
-				messageEl.classList.remove('hidden');
-				setTimeout(() => {
-					messageEl.classList.add('hidden');
-				}, 3000);
-			});
-		}
-	</script>
-</body>
-</html>
-	`.trim();
-}
-
-/**
  * Handle magic link authentication endpoint
+ * Validates token, sets cookie, and redirects to dashboard
  */
 async function handleMagicLinkAuthEndpoint(context: any, token: string) {
 	try {
@@ -574,17 +486,103 @@ async function handleMagicLinkAuthEndpoint(context: any, token: string) {
 		);
 
 		if (!validation.valid || !validation.tokenData) {
-			return createErrorHttpResponse(
-				new Error(validation.error || 'Invalid or expired token'),
+			// Invalid token - redirect to dashboard with error
+			return new Response(null, {
+				status: 302,
+				headers: {
+					'Location': '/dashboard?error=invalid_token',
+				},
+			});
+		}
+
+		// Mark token as used
+		await markTokenAsUsed(context.locals.runtime.env.MAGIC_LINKS, token);
+
+		// Set cookie with token (expires in 30 days)
+		const expiresDate = new Date();
+		expiresDate.setTime(expiresDate.getTime() + (30 * 24 * 60 * 60 * 1000));
+		
+		// Determine if we're in production (HTTPS) or development (HTTP)
+		const isProduction = context.request.url.startsWith('https://');
+		const secureFlag = isProduction ? '; Secure' : '';
+		const cookieValue = `magic_link_token=${token}; expires=${expiresDate.toUTCString()}; path=/; SameSite=Lax${secureFlag}`;
+		
+		// Redirect to dashboard with cookie set
+		return new Response(null, {
+			status: 302,
+			headers: { 
+				'Location': '/dashboard',
+				'Set-Cookie': cookieValue,
+			},
+		});
+	} catch (error) {
+		console.error('Magic link auth error:', error);
+		return new Response(null, {
+			status: 302,
+			headers: {
+				'Location': '/dashboard?error=server_error',
+			},
+		});
+	}
+}
+
+/**
+ * Handle dashboard data endpoint
+ * Returns API keys and statistics for authenticated user (via cookie)
+ */
+async function handleDashboardDataEndpoint(context: any) {
+	try {
+		// Get token from cookie
+		const cookieHeader = context.request.headers.get('cookie');
+		if (!cookieHeader) {
+			return createCorsResponse(
+				JSON.stringify({ authenticated: false }),
+				{
+					status: 200,
+					headers: { 'Content-Type': 'application/json' },
+				},
+				context.request
+			);
+		}
+
+		// Parse cookie to get token
+		const cookies = cookieHeader.split(';').reduce((acc: Record<string, string>, cookie: string) => {
+			const [key, value] = cookie.trim().split('=');
+			acc[key] = value;
+			return acc;
+		}, {});
+
+		const token = cookies['magic_link_token'];
+		if (!token) {
+			return createCorsResponse(
+				JSON.stringify({ authenticated: false }),
+				{
+					status: 200,
+					headers: { 'Content-Type': 'application/json' },
+				},
+				context.request
+			);
+		}
+
+		// Validate token
+		const validation = await validateMagicLinkToken(
+			context.locals.runtime.env.MAGIC_LINKS,
+			token
+		);
+
+		if (!validation.valid || !validation.tokenData) {
+			return createCorsResponse(
+				JSON.stringify({ authenticated: false, error: 'Invalid or expired token' }),
+				{
+					status: 200,
+					headers: { 'Content-Type': 'application/json' },
+				},
 				context.request
 			);
 		}
 
 		const { tokenData } = validation;
 		const email = tokenData.email;
-
-		// Mark token as used
-		await markTokenAsUsed(context.locals.runtime.env.MAGIC_LINKS, token);
 
 		// Get API keys for this email
 		const apiKeys = await getApiKeysByEmail(context.locals.runtime.env.API_KEYS, email);
@@ -603,26 +601,27 @@ async function handleMagicLinkAuthEndpoint(context: any, token: string) {
 			};
 		}
 
-		// Generate HTML page with API keys and statistics
-		const html = generateApiKeyPage(email, apiKeys, stats, token);
-		
-		// Set cookie with token (expires in 30 days)
-		const expiresDate = new Date();
-		expiresDate.setTime(expiresDate.getTime() + (30 * 24 * 60 * 60 * 1000));
-		const cookieValue = `magic_link_token=${token}; expires=${expiresDate.toUTCString()}; path=/; SameSite=Lax; Secure`;
-		
-		return new Response(html, {
-			status: 200,
-			headers: { 
-				'Content-Type': 'text/html; charset=utf-8',
-				'Set-Cookie': cookieValue,
-			},
-		});
-	} catch (error) {
 		return createCorsResponse(
 			JSON.stringify({
-				error: error instanceof Error ? error.message : 'Internal server error',
+				authenticated: true,
+				email,
+				apiKeys: apiKeys.map((k) => ({
+					key: k.key,
+					createdAt: k.createdAt,
+					lastUsed: k.lastUsed,
+				})),
+				statistics: stats,
 			}),
+			{
+				status: 200,
+				headers: { 'Content-Type': 'application/json' },
+			},
+			context.request
+		);
+	} catch (error) {
+		console.error('Dashboard data error:', error);
+		return createCorsResponse(
+			JSON.stringify({ authenticated: false, error: 'Server error' }),
 			{
 				status: 500,
 				headers: { 'Content-Type': 'application/json' },
