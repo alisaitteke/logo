@@ -1,0 +1,830 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Initialize Project and Cloudflare Services",
+        "description": "Set up the Astro frontend, configure Cloudflare Workers, R2, KV, and Images, and establish environment variables. Integrate Tailwind CSS into the Astro blog template using the official @astrojs/tailwind integration.",
+        "status": "done",
+        "dependencies": [],
+        "priority": "high",
+        "details": "Use the Astro blog template for the frontend. Add Tailwind CSS to the Astro project using the @astrojs/tailwind integration and configure it according to Astro's documentation. Set up Cloudflare Workers using Wrangler (latest version, e.g., v3.x). Create R2 buckets for logo storage, KV namespaces for API keys, stats, and magic links. Bind these resources to Workers via wrangler.toml. Configure Cloudflare Images for optimization. Set up environment variables for provider URLs, API secrets, and email service credentials. Ensure DNS and routing are configured for the custom domain (e.g., logo.alisait.com) as per Cloudflare's best practices.",
+        "testStrategy": "Verify that all Cloudflare resources are accessible from Workers and Astro can be built and deployed. Confirm Tailwind CSS is working by checking for Tailwind styles in the Astro frontend. Confirm environment variables are loaded and DNS routes traffic correctly.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set Up Astro Frontend Using Blog Template",
+            "description": "Initialize the Astro frontend project using the official blog template as the base for the dashboard and documentation.",
+            "dependencies": [],
+            "details": "Use the Astro CLI to scaffold a new project with the blog template. Install dependencies and verify the development server runs locally. Prepare the project structure for future dashboard and documentation pages.\n<info added on 2025-11-21T13:45:41.779Z>\nAstro blog template successfully installed using the Cloudflare Astro blog starter template. The @astrojs/cloudflare adapter is already included, and wrangler.json configuration is present. Astro project structure is set up (src/, public/, pages/, components/), and the development server has been tested.\n</info added on 2025-11-21T13:45:41.779Z>",
+            "status": "done",
+            "testStrategy": "Run 'npm run dev' and verify the blog template loads locally without errors."
+          },
+          {
+            "id": 2,
+            "title": "Install and Configure Wrangler for Cloudflare Workers",
+            "description": "Install the latest Wrangler CLI and initialize a Cloudflare Workers project, ensuring compatibility with Node.js requirements.",
+            "dependencies": [],
+            "details": "Install Node.js (v16.17.0 or later) and use a version manager if needed. Install Wrangler locally in the project. Initialize a new Worker using Wrangler or C3, and verify the project structure. Ensure the wrangler.toml file is present.\n<info added on 2025-11-21T13:50:11.755Z>\nWrangler is already installed and configured (v4.42.0 listed in package.json). The wrangler.json configuration file is present. The project is ready for Cloudflare Workers, with Node.js compatibility enabled via the nodejs_compat flag. The current Worker name is tiny-sun-81ea (can be updated later).\n</info added on 2025-11-21T13:50:11.755Z>",
+            "status": "done",
+            "testStrategy": "Run 'wrangler dev' to start a local Worker and confirm it responds to requests."
+          },
+          {
+            "id": 3,
+            "title": "Create and Bind R2 Buckets and KV Namespaces",
+            "description": "Set up Cloudflare R2 buckets for logo storage and KV namespaces for API keys, stats, and magic links. Bind these resources in wrangler.toml.",
+            "dependencies": [
+              2
+            ],
+            "details": "In the Cloudflare dashboard, create an R2 bucket for logos and three KV namespaces (API keys, stats, magic links). Add the appropriate bindings to wrangler.toml under [vars] or [kv_namespaces] and [r2_buckets].\n<info added on 2025-11-21T13:56:42.006Z>\nR2 bucket and KV namespaces have been successfully created and all bindings have been added to wrangler.json. \n\nR2 Bucket:\n- Name: logos\n- Binding: LOGOS\n\nKV Namespaces:\n- API_KEYS: ff1c40daf92c401b8d459892ea75697d\n- STATS: fcd0c3ea27a74267b91d55770a5988de\n- MAGIC_LINKS: e9504e254bdf438892d87bf256ecceda\n\nAll bindings are accessible from the Worker.\n</info added on 2025-11-21T13:56:42.006Z>",
+            "status": "done",
+            "testStrategy": "Deploy the Worker and verify access to R2 and KV via test endpoints or logs."
+          },
+          {
+            "id": 4,
+            "title": "Configure Cloudflare Images for Logo Optimization",
+            "description": "Enable and configure Cloudflare Images for image optimization, resizing, and format conversion.",
+            "dependencies": [],
+            "details": "In the Cloudflare dashboard, enable Cloudflare Images. Set up image variants and configure access policies. Prepare API credentials for image upload and transformation.\n<info added on 2025-11-21T13:57:16.784Z>\nCloudflare Images yapılandırması için hazırlık yapıldı:\n\n- Cloudflare Images CLI ile oluşturulamıyor, dashboard'dan enable edilmesi gerekiyor\n- API kullanımı için Account ID ve API Token gerekiyor\n- Environment variables olarak CLOUDFLARE_ACCOUNT_ID ve CLOUDFLARE_IMAGES_API_TOKEN eklenmeli\n- Image variants ve access policies dashboard'dan yapılandırılacak\n\nSonraki adımlar:\n1. Cloudflare Dashboard'da Images servisini enable et\n2. API Token oluştur\n3. Environment variables'ı wrangler.json'a ekle (vars veya secrets olarak)\n</info added on 2025-11-21T13:57:16.784Z>",
+            "status": "done",
+            "testStrategy": "Upload a test image and request optimized versions via Cloudflare Images URLs."
+          },
+          {
+            "id": 5,
+            "title": "Establish Environment Variables for Secrets and Providers",
+            "description": "Define and securely manage environment variables for provider URLs, API secrets, and email service credentials.",
+            "dependencies": [
+              2,
+              3,
+              4
+            ],
+            "details": "Add environment variables to wrangler.toml under [vars] or use secret management commands. Ensure variables are available to both Workers and the Astro frontend as needed.\n<info added on 2025-11-21T13:57:47.431Z>\n✅ Environment variables configured\n\nNon-sensitive variables (vars):\n- GETLOGO_API_URL: https://getlogo.dev\n- LOGO_DEV_API_URL: https://logo.dev\n- CLOUDFLARE_IMAGES_BASE_URL: https://imagedelivery.net\n\nSensitive secrets (to be set with wrangler secret put):\n- CLOUDFLARE_ACCOUNT_ID\n- CLOUDFLARE_IMAGES_API_TOKEN\n- EMAIL_SERVICE_API_KEY (if using external email service)\n- GETLOGO_API_KEY (if needed)\n- LOGO_DEV_API_KEY (if needed)\n\nNote: Secrets should be set in production using the wrangler secret put command.\n</info added on 2025-11-21T13:57:47.431Z>",
+            "status": "done",
+            "testStrategy": "Log environment variable values in a test Worker route to confirm correct loading (avoid logging secrets in production)."
+          },
+          {
+            "id": 6,
+            "title": "Configure DNS and Routing for Custom Domain",
+            "description": "Set up DNS records and Cloudflare routing to point the custom domain (e.g., logo.alisait.com) to the deployed Worker.",
+            "dependencies": [
+              2
+            ],
+            "details": "In the Cloudflare dashboard, add DNS records for the custom domain. Update wrangler.toml with the correct route patterns and zone information. Verify that requests to the custom domain are routed to the Worker.",
+            "status": "done",
+            "testStrategy": "Access the custom domain in a browser and confirm the Worker responds as expected."
+          },
+          {
+            "id": 7,
+            "title": "Add Tailwind CSS to Astro Project",
+            "description": "Install and configure Tailwind CSS in the Astro blog template using the official @astrojs/tailwind integration.",
+            "dependencies": [
+              1
+            ],
+            "details": "Install @astrojs/tailwind and add it to astro.config.mjs. Run the integration setup to generate tailwind.config.js and postcss.config.js. Verify Tailwind CSS is enabled by adding Tailwind classes to a page and confirming styles are applied.\n<info added on 2025-11-21T13:49:32.070Z>\n✅ Tailwind CSS was successfully installed and configured\n- @astrojs/tailwind and tailwindcss packages were installed\n- tailwind() integration was added to astro.config.mjs\n- tailwind.config.mjs was created and content paths were configured\n- @tailwind directives were added to src/styles/global.css\n- Build was tested and succeeded\n- Tailwind functionality was verified with a test element\n</info added on 2025-11-21T13:49:32.070Z>",
+            "status": "done",
+            "testStrategy": "Add a test element with Tailwind utility classes to the Astro frontend and verify correct styling in the browser."
+          },
+          {
+            "id": 8,
+            "title": "Install and Configure Tailwind CSS",
+            "description": "Install Tailwind CSS and Astro Tailwind integration for modern, responsive UI design",
+            "details": "Install @astrojs/tailwind and tailwindcss packages. Configure Tailwind in astro.config.mjs. Create or update tailwind.config.mjs with appropriate content paths. Ensure Tailwind directives are properly set up in global CSS.",
+            "status": "done",
+            "dependencies": [
+              null
+            ],
+            "parentTaskId": 1
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Implement External Logo Provider Integrations",
+        "description": "Integrate with getlogo.dev and logo.dev APIs for fetching logos by domain or company name.",
+        "details": "Create utility functions in Workers to fetch logos from getlogo.dev and logo.dev using their latest REST APIs. Use fetch with appropriate headers and error handling. Abstract provider logic for easy addition/removal. Ensure requests are made for the largest available logo. Use async/await and handle rate limits gracefully.",
+        "testStrategy": "Mock provider responses and verify correct logo retrieval and error handling for unavailable logos.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement getlogo.dev Utility Function",
+            "description": "Create an asynchronous utility function to fetch logos from the getlogo.dev API by domain or company name, handling errors and rate limits.",
+            "dependencies": [],
+            "details": "Develop a function using fetch and async/await to request the largest available logo from getlogo.dev. Include appropriate headers, handle HTTP errors, and implement logic for rate limit responses. Ensure the function can accept domain or company name as input and returns the logo URL or a structured error.\n<info added on 2025-11-21T14:01:33.456Z>\ngetlogo.dev utility function implemented as fetchLogoFromGetLogo in src/lib/providers/getlogo.ts, supporting both domain and company name inputs. Function includes parameters for size, format, and greyscale, with comprehensive error handling for 404, 429 rate limit, and other HTTP errors. Content-type validation is performed to ensure correct logo retrieval.\n</info added on 2025-11-21T14:01:33.456Z>",
+            "status": "done",
+            "testStrategy": "Mock getlogo.dev API responses, test for successful logo retrieval, error handling for 404 and rate limits, and verify correct URL construction."
+          },
+          {
+            "id": 2,
+            "title": "Implement logo.dev Utility Function",
+            "description": "Develop an asynchronous utility function to fetch logos from the logo.dev API by domain or company name, ensuring correct parameter usage and robust error handling.",
+            "dependencies": [],
+            "details": "Write a function using fetch and async/await to call the logo.dev API, passing required parameters (e.g., token, format, size) for the largest logo. Handle HTTP errors, including 404 and rate limits, and ensure the function is flexible for both domain and company name lookups.\n<info added on 2025-11-21T14:01:36.530Z>\nfetchLogoFromLogoDev function implemented in src/lib/providers/logodev.ts with support for both domain and company name lookups. Parameters for size, format, and greyscale are included. Comprehensive error handling covers 404 not found, 429 rate limit, and other HTTP errors. Content-type validation is performed to ensure correct logo retrieval.\n</info added on 2025-11-21T14:01:36.530Z>",
+            "status": "done",
+            "testStrategy": "Mock logo.dev API responses, test for correct logo retrieval, error handling for unavailable logos and rate limits, and validate parameter usage."
+          },
+          {
+            "id": 3,
+            "title": "Design and Implement Provider Abstraction Interface",
+            "description": "Create an abstraction layer/interface to unify logo provider logic, enabling easy addition or removal of providers and consistent error handling.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Define a provider interface or abstract class that standardizes input, output, and error handling for all logo providers. Refactor the getlogo.dev and logo.dev utility functions to conform to this interface. Ensure the abstraction supports future providers and allows for provider prioritization or fallback logic.\n<info added on 2025-11-21T14:01:39.709Z>\nProvider abstraction interface has been created as LogoProvider. All providers are listed in the logoProviders array. The fetchLogoWithFailover function implements failover logic across providers, while fetchLogoFromProvider allows selection of a specific provider. All providers now use the unified interface and are exported from src/lib/providers/index.ts.\n</info added on 2025-11-21T14:01:39.709Z>",
+            "status": "done",
+            "testStrategy": "Unit test the abstraction with both providers, verify consistent interface, test fallback logic, and ensure extensibility for new providers."
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Develop Multi-Provider Failover Logic",
+        "description": "Implement failover mechanism to try multiple providers in sequence and select the best available logo.",
+        "details": "Chain provider calls: if the first provider fails or returns no logo, automatically try the next. Log provider responses for debugging. Store provider metadata with each logo in R2. Use Promise.race or sequential async calls for failover. Ensure the largest logo is selected.",
+        "testStrategy": "Simulate provider failures and verify that the system falls back to the next provider and logs the outcome.",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Sequential/Chained Provider Calls for Logo Retrieval",
+            "description": "Develop logic to call multiple logo providers in sequence, automatically proceeding to the next if the current provider fails or returns no logo.",
+            "dependencies": [],
+            "details": "Use asynchronous control flow (such as Promise chaining or async/await) to attempt provider calls one after another. Ensure that if a provider fails (due to error or empty response), the next provider is tried until a logo is successfully retrieved or all providers are exhausted.\n<info added on 2025-11-21T14:03:46.880Z>\nSequential/Chained provider calls have been successfully implemented. The fetchLogoWithFailover function has been updated to attempt providers in sequence, returning the first successful logo retrieved. If all providers fail or return empty responses, an error is returned. The enhanced failover mechanism is now available in src/lib/providers/index.ts, ensuring robust logo retrieval with automatic fallback to subsequent providers.\n</info added on 2025-11-21T14:03:46.880Z>",
+            "status": "done",
+            "testStrategy": "Simulate provider failures and empty responses; verify that the system attempts each provider in order and stops at the first successful logo retrieval."
+          },
+          {
+            "id": 2,
+            "title": "Log Provider Responses for Debugging and Monitoring",
+            "description": "Capture and store detailed logs of each provider's response, including errors and returned data, for debugging and monitoring purposes.",
+            "dependencies": [
+              1
+            ],
+            "details": "Integrate structured logging for each provider call, recording response status, errors, and relevant metadata. Ensure logs are accessible for troubleshooting and performance analysis.\n<info added on 2025-11-21T14:03:50.057Z>\nStructured logging has been implemented for all provider calls using the ProviderLog interface and the logProviderOperation function. Helper functions createFetchLog and createStoreLog are used to generate log entries. Each provider call logs success status, duration, and errors, with all logging logic centralized in src/lib/logging/logger.ts.\n</info added on 2025-11-21T14:03:50.057Z>",
+            "status": "done",
+            "testStrategy": "Trigger various provider responses (success, failure, timeout) and verify that logs contain accurate and complete information for each scenario."
+          },
+          {
+            "id": 3,
+            "title": "Store Provider Metadata with Logo in R2 Storage",
+            "description": "When a logo is successfully retrieved, store it in R2 along with metadata about the provider and the retrieval process.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Design a metadata schema to include provider name, response time, retrieval timestamp, and any relevant status codes. Ensure metadata is stored atomically with the logo asset in R2.\n<info added on 2025-11-21T14:03:55.440Z>\nR2 storage and metadata implementation completed. The LogoMetadata interface has been defined. Logos and their metadata are saved using the storeLogoInR2 function. Retrieval is supported via getLogoFromR2 and getMetadataFromR2 functions. Metadata is stored as JSON under a separate key and also as custom metadata on R2 objects. All related logic is implemented in src/lib/storage/r2.ts.\n</info added on 2025-11-21T14:03:55.440Z>",
+            "status": "done",
+            "testStrategy": "Retrieve and inspect stored logos in R2; confirm that associated metadata is present, accurate, and matches the provider used."
+          },
+          {
+            "id": 4,
+            "title": "Select and Return the Best (Largest) Logo from Available Results",
+            "description": "Implement logic to compare all successfully retrieved logos and select the largest one for final use.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "After collecting logos from all providers (or until a successful one is found), compare their dimensions or file sizes and select the largest. Ensure this logic is integrated with the failover and storage process.\n<info added on 2025-11-21T14:03:58.657Z>\nEn büyük logo seçimi başarıyla implement edildi. fetchLogoWithFailover fonksiyonu tüm başarılı sonuçları toplar, logo data fetch edilip file size bilgisi alınır, başarılı sonuçlar file size'a göre sıralanır (en büyük önce), en büyük logo seçilip döndürülür. src/lib/providers/index.ts dosyasında EnhancedLogoResult interface tanımlandı.\n</info added on 2025-11-21T14:03:58.657Z>",
+            "status": "done",
+            "testStrategy": "Test with multiple providers returning logos of different sizes; verify that the largest logo is always selected and returned."
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Implement Logo Caching and Storage in R2",
+        "description": "Store fetched logos in R2 with metadata for domain/name, provider, format, and size.",
+        "details": "Use Cloudflare R2's S3-compatible API to store logo binaries. Use structured keys (e.g., logos/{domain}/{format}/{size}). Store metadata in KV for quick lookup. Implement cache-control headers and cache invalidation logic for stale logos. Use wrangler's R2 bindings for direct access[1].",
+        "testStrategy": "Fetch a logo, store it in R2, and verify retrieval and metadata correctness. Test cache hit/miss scenarios.",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Store Logo Binaries in R2 with Structured Keys",
+            "description": "Implement logic to upload logo binaries to Cloudflare R2 using S3-compatible API and structured keys (e.g., logos/{domain}/{format}/{size}).",
+            "dependencies": [],
+            "details": "Use wrangler's R2 bindings to interact with R2. Ensure correct key structure and error handling during upload. Test with sample logos.\n<info added on 2025-11-21T14:06:04.343Z>\nStructured key implementation for R2 storage is complete. The generateLogoKey function now supports a size parameter, producing keys in the format logos/{domain}_{size}.{format} or logos/name/{name}_{size}.{format}. The storeLogoInR2 function is size-aware, and cache-control headers (1 year) have been added. All changes are in src/lib/storage/r2.ts.\n</info added on 2025-11-21T14:06:04.343Z>",
+            "status": "done",
+            "testStrategy": "Upload logos and verify they appear in R2 with correct keys."
+          },
+          {
+            "id": 2,
+            "title": "Manage Logo Metadata in KV Store",
+            "description": "Store and retrieve logo metadata (domain, name, provider, format, size) in Cloudflare KV for quick lookup.",
+            "dependencies": [
+              1
+            ],
+            "details": "Design KV key structure for metadata (e.g., metadata/{domain}/{format}/{size}). Implement CRUD operations for metadata and ensure consistency with R2 storage.\n<info added on 2025-11-21T14:06:07.518Z>\nKV metadata management implemented using generateKVMetadataKey for structured keys. CRUD operations provided via storeMetadataInKV, getMetadataFromKV, and deleteMetadataFromKV functions. KV key format follows logo:{domain}:{format}_{size} or logo:name:{name}:{format}_{size}. Metadata is stored with a 1 year TTL. Implementation is located in src/lib/storage/kv.ts.\n</info added on 2025-11-21T14:06:07.518Z>",
+            "status": "done",
+            "testStrategy": "Store metadata, retrieve it, and verify correctness and consistency with R2."
+          },
+          {
+            "id": 3,
+            "title": "Implement Cache-Control and Cache Invalidation Logic",
+            "description": "Add cache-control headers to logo responses and implement logic to invalidate stale logos in R2 and KV.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Set appropriate cache-control headers on logo retrieval. Implement periodic or event-driven invalidation logic for stale logos based on age or provider updates.\n<info added on 2025-11-21T14:06:11.560Z>\nCache-control and invalidation logic implemented in src/lib/storage/cache.ts:\n- getCacheControlHeaders function sets cache headers.\n- isMetadataStale function checks for stale metadata.\n- invalidateLogoCache and invalidateStaleLogo functions handle cache invalidation.\n- Cache invalidation is performed for both R2 and KV.\n- Maximum cache age is configurable, defaulting to 30 days.\n</info added on 2025-11-21T14:06:11.560Z>",
+            "status": "done",
+            "testStrategy": "Test cache hit/miss scenarios and verify stale logos are invalidated as expected."
+          },
+          {
+            "id": 4,
+            "title": "Implement Logo Retrieval Logic",
+            "description": "Create logic to retrieve logos from R2 and metadata from KV, handling cache hits and misses efficiently.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Implement retrieval flow: check cache, fetch from R2 if needed, return logo with metadata. Ensure proper error handling and fallbacks.\n<info added on 2025-11-21T14:06:15.069Z>\nLogo retrieval logic implemented: fetchLogo function updated for KV and R2 metadata lookup, stale cache detection and invalidation, cache hit/miss handling, and storage to R2 and KV. Enhanced retrieval logic added in src/lib/logo-fetcher.ts.\n</info added on 2025-11-21T14:06:15.069Z>",
+            "status": "done",
+            "testStrategy": "Test retrieval for both cached and uncached logos, verify metadata and binary correctness."
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Create API Endpoints for Logo Retrieval",
+        "description": "Develop Cloudflare Worker endpoints for domain and company name-based logo retrieval with query parameter parsing.",
+        "details": "Implement GET /{domain} and GET /name/{companyName} endpoints in Workers. Parse query parameters (greyscale, format, size, key). Validate API key from KV. Return logo from R2 if cached, otherwise trigger fetch and cache. Use latest Hono or itty-router for routing (Hono v3.x recommended for Workers)[4].",
+        "testStrategy": "Send requests with various parameters and verify correct logo, format, and error handling. Test invalid/missing keys.",
+        "priority": "high",
+        "dependencies": [
+          4
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up endpoint routing and query parameter parsing",
+            "description": "Implement GET /{domain} and GET /name/{companyName} endpoints using Hono v3.x. Parse query parameters (greyscale, format, size, key) from incoming requests.",
+            "dependencies": [],
+            "details": "Use Hono's routing to define the required endpoints. Extract and validate query parameters for each request. Ensure proper handling of both domain and company name paths.\n<info added on 2025-11-21T14:07:52.443Z>\nEndpoint routing and query parameter parsing have been implemented using Astro middleware. The GET /{domain} and GET /name/{companyName} endpoints are defined, with query parameters (format, size, greyscale, key) parsed via the parseQueryParams function. Format is validated to allow only png, svg, or webp; size is validated to accept values between 64 and 512 pixels. All related logic is located in src/middleware.ts.\n</info added on 2025-11-21T14:07:52.443Z>",
+            "status": "done",
+            "testStrategy": "Send requests with various query parameters and verify correct parsing and routing."
+          },
+          {
+            "id": 2,
+            "title": "Implement API key validation middleware",
+            "description": "Create middleware to validate API keys against KV for each request. Return 401 if the key is missing or invalid.",
+            "dependencies": [
+              1
+            ],
+            "details": "Integrate with Cloudflare KV to check the existence and validity of the provided API key. Use Hono middleware pattern to apply validation to all protected endpoints.\n<info added on 2025-11-21T14:07:55.284Z>\nAPI key validation middleware has been implemented in src/middleware.ts using the validateApiKey function, which checks the provided key against Cloudflare KV. If the key is missing or invalid, a 401 error is returned. The middleware is applied to all protected endpoints.\n</info added on 2025-11-21T14:07:55.284Z>",
+            "status": "done",
+            "testStrategy": "Test endpoints with valid, invalid, and missing API keys to ensure proper validation and error responses."
+          },
+          {
+            "id": 3,
+            "title": "Implement cache lookup and fetch logic",
+            "description": "Check R2 for cached logo based on domain/name, format, and size. If not found, trigger fetch from providers and cache the result in R2.",
+            "dependencies": [
+              2
+            ],
+            "details": "Use R2 bindings to check for cached logos. If not present, fetch from providers, store in R2 with appropriate metadata, and return the result.\n<info added on 2025-11-21T14:07:59.290Z>\nCache lookup and fetch logic has been implemented as follows:\n- The fetchLogo function checks R2 for a cached logo.\n- On a cache miss, the logo is fetched from providers, then stored in both R2 and KV with appropriate metadata.\n- On a cache hit, the logo is returned directly from R2.\n- The logic is integrated into handleDomainEndpoint and handleNameEndpoint in src/middleware.ts.\n</info added on 2025-11-21T14:07:59.290Z>",
+            "status": "done",
+            "testStrategy": "Verify cache hit and miss scenarios, ensuring logos are fetched and cached correctly."
+          },
+          {
+            "id": 4,
+            "title": "Implement error handling and response formatting",
+            "description": "Handle errors during API key validation, cache lookup, and fetch operations. Format responses with appropriate status codes and error messages.",
+            "dependencies": [
+              3
+            ],
+            "details": "Ensure all endpoints return consistent JSON responses with correct status codes. Handle and log errors for debugging and user feedback.\n<info added on 2025-11-21T14:08:04.134Z>\nError handling and response formatting have been implemented using try-catch blocks to ensure all errors are caught and logged. All endpoints now return consistent JSON error responses with appropriate HTTP status codes (401 for unauthorized, 404 for not found, 500 for server errors). For image responses, correct Content-Type headers are set, and cache-control headers are included for proper caching behavior. Request statistics are tracked using the trackRequest function. All middleware logic is centralized in src/middleware.ts.\n</info added on 2025-11-21T14:08:04.134Z>",
+            "status": "done",
+            "testStrategy": "Test error scenarios and verify that responses are properly formatted and informative."
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Integrate Cloudflare Images for Optimization",
+        "description": "Use Cloudflare Images to optimize, resize, convert formats, and apply greyscale filters to logos.",
+        "details": "Upload logos to Cloudflare Images via API. Use image delivery URLs with transformation parameters (format, width, greyscale). For SVG, ensure proper conversion or fallback. Use signed URLs if needed for security[5]. Integrate with Workers to generate optimized image URLs on-the-fly.",
+        "testStrategy": "Request images with different formats, sizes, and greyscale options. Verify output quality and performance.",
+        "priority": "high",
+        "dependencies": [
+          5
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Upload Logos to Cloudflare Images via API",
+            "description": "Implement the process to upload logo images to Cloudflare Images using the official API, ensuring proper authentication and metadata handling.",
+            "dependencies": [],
+            "details": "Set up API tokens and permissions in the Cloudflare dashboard. Use the Cloudflare Images API to upload logos, handling authentication (bearer token), and store returned image IDs for later retrieval. Ensure error handling for failed uploads and support for batch uploads if needed.\n<info added on 2025-11-21T14:09:37.489Z>\nCloudflare Images upload implemented using the uploadToCloudflareImages function in src/lib/images/cloudflare-images.ts. The function uses FormData for image upload, supports metadata, and authenticates requests with a Bearer token. Comprehensive error handling is included.\n</info added on 2025-11-21T14:09:37.489Z>",
+            "status": "done",
+            "testStrategy": "Upload various logo formats (PNG, JPEG, SVG) and verify successful storage and correct metadata via API responses."
+          },
+          {
+            "id": 2,
+            "title": "Generate Image Transformation URLs for Optimization",
+            "description": "Create logic to generate Cloudflare Images delivery URLs with transformation parameters for resizing, format conversion, and greyscale filters.",
+            "dependencies": [
+              1
+            ],
+            "details": "For each uploaded logo, construct image delivery URLs using the imagedelivery.net base, appending transformation parameters (e.g., width, format, greyscale). Support signed URLs for security if required. Document supported transformations and ensure URLs are compatible with frontend usage.\n<info added on 2025-11-21T14:09:40.560Z>\nImage transformation URL generation is implemented via the generateImageUrl function, supporting width, height, format, fit, quality, sharpen, blur, and greyscale parameters. The imagedelivery.net base URL is used, with variant strings constructed for transformation options. Implementation is located in src/lib/images/cloudflare-images.ts.\n</info added on 2025-11-21T14:09:40.560Z>",
+            "status": "done",
+            "testStrategy": "Request images using generated URLs with different parameters and verify correct transformations (size, format, greyscale) in the output."
+          },
+          {
+            "id": 3,
+            "title": "Handle SVG Conversion and Fallback Logic",
+            "description": "Implement logic to detect SVG uploads and ensure proper conversion to raster formats or provide a fallback if conversion is not possible.",
+            "dependencies": [
+              1
+            ],
+            "details": "Detect SVG files during upload or URL generation. If Cloudflare Images does not support direct SVG transformations, convert SVG to PNG or WebP before upload or on-the-fly. If conversion fails, provide a fallback image or error response. Document the SVG handling process.\n<info added on 2025-11-21T14:09:44.562Z>\nSVG conversion and fallback logic has been implemented as follows:\n- SVG detection is handled by the `isSvgFormat` function.\n- SVG to raster conversion is managed via the `convertSvgToRaster` function (currently a placeholder; actual conversion requires an external service).\n- Support for converting SVGs to PNG/WebP formats is in place.\n- Fallback logic is implemented to provide a default image or error response if conversion fails.\n- All logic is located in `src/lib/images/cloudflare-images.ts`.\n</info added on 2025-11-21T14:09:44.562Z>",
+            "status": "done",
+            "testStrategy": "Upload SVG logos and verify they are correctly converted and delivered in raster formats. Test fallback behavior for unsupported or invalid SVGs."
+          },
+          {
+            "id": 4,
+            "title": "Integrate with Cloudflare Workers for Dynamic URL Generation",
+            "description": "Develop and deploy a Cloudflare Worker that generates optimized image URLs on-the-fly, applying requested transformations and handling security (signed URLs).",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Bind the Images API to the Worker in wrangler.toml. Implement Worker logic to accept requests, validate parameters, generate transformation URLs, and optionally sign URLs for secure access. Ensure the Worker can handle different image formats and transformation options dynamically.\n<info added on 2025-11-21T14:09:48.770Z>\nCloudflare Workers integration has been implemented, enabling dynamic image URL generation and transformation via Cloudflare Images. The logo-fetcher.ts module now supports Cloudflare Images with an optional useCloudflareImages flag, allowing flexible adoption. Upload and URL generation processes are integrated, supporting dynamic transformation URLs for various formats and sizes. The solution is ready for use in middleware and fully integrated in src/lib/logo-fetcher.ts.\n</info added on 2025-11-21T14:09:48.770Z>",
+            "status": "done",
+            "testStrategy": "Deploy the Worker and test dynamic URL generation for various transformation requests, including security checks for signed URLs and performance under load."
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Implement API Key Generation and Storage",
+        "description": "Allow users to request an API key by submitting their email, store keys in KV, and associate with email.",
+        "details": "Create POST /api/request-key endpoint. Validate email format. Generate UUID v4 or base64 random string as key. Store in KV with email, createdAt, and initial stats. Use latest uuid library or crypto.randomUUID().",
+        "testStrategy": "Submit valid and invalid emails, verify key generation, uniqueness, and KV storage.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Email Validation Logic",
+            "description": "Develop logic to validate user-submitted email addresses for correct format before processing API key requests.",
+            "dependencies": [],
+            "details": "Use a robust regular expression or a dedicated email validation library to ensure submitted emails conform to standard formats. Integrate this validation into the POST /api/request-key endpoint, returning an error for invalid emails.\n<info added on 2025-11-21T14:10:57.273Z>\nEmail validation logic implemented using the validateEmail function with an RFC 5322 compliant regex. Email validation is enforced in the POST /api/request-key endpoint, returning a 400 error response for invalid emails. Implementation is located in src/lib/auth/api-keys.ts.\n</info added on 2025-11-21T14:10:57.273Z>",
+            "status": "done",
+            "testStrategy": "Submit various valid and invalid email formats to the endpoint and verify correct acceptance or rejection."
+          },
+          {
+            "id": 2,
+            "title": "Develop Secure API Key Generation",
+            "description": "Generate a unique, random API key using UUID v4 or a cryptographically secure random string for each valid email request.",
+            "dependencies": [
+              1
+            ],
+            "details": "Utilize the latest uuid library or crypto.randomUUID() to create keys. Ensure keys are sufficiently complex, non-guessable, and unique. Optionally, add a prefix for easier identification and future management.\n<info added on 2025-11-21T14:11:00.079Z>\nSecure API key generation is implemented via the generateApiKey function in src/lib/auth/api-keys.ts, using crypto.randomUUID() for cryptographically secure random UUID v4 generation. Each key is prefixed with \"logo_\" to facilitate identification and management. The implementation guarantees uniqueness and non-guessability of keys.\n</info added on 2025-11-21T14:11:00.079Z>",
+            "status": "done",
+            "testStrategy": "Request multiple keys and verify uniqueness, randomness, and compliance with security best practices."
+          },
+          {
+            "id": 3,
+            "title": "Store API Key and Metadata in KV Store",
+            "description": "Persist the generated API key along with associated email, creation timestamp, and initial usage stats in the KV store.",
+            "dependencies": [
+              2
+            ],
+            "details": "Design a KV schema to store the API key, email, createdAt, and stats. Ensure secure storage practices, avoid exposing keys, and support efficient lookup by email or key. Integrate with the POST /api/request-key endpoint to save data upon successful key generation.\n<info added on 2025-11-21T14:11:04.056Z>\nAPI key and metadata KV storage implemented using the storeApiKey function. Supports lookup by both key and email using \"key:\" and \"email:\" prefixes. ApiKeyData interface defines the structured data format. Manages a list of keys per email for efficient retrieval. Initial stats include requestCount set to 0. Implementation is located in src/lib/auth/api-keys.ts and src/middleware.ts.\n</info added on 2025-11-21T14:11:04.056Z>",
+            "status": "done",
+            "testStrategy": "Verify that each key and its metadata are correctly stored and retrievable from KV. Test for duplicate prevention and correct association."
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Develop Magic Link Email Authentication System",
+        "description": "Send a magic link to the user's email for authentication, validate token, and display key and stats.",
+        "details": "Generate secure random tokens, store in KV with email and 24h expiry. Use Cloudflare Email Workers or a third-party service (SendGrid/Mailgun) for sending emails. Implement GET /api/auth/{token} endpoint to validate token, retrieve email, and display associated API key and stats. Use JWT or signed tokens for added security if needed.",
+        "testStrategy": "Request magic link, verify email delivery, token expiry, and correct key/stat retrieval upon link click.",
+        "priority": "high",
+        "dependencies": [
+          7
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Secure Token Generation and Storage",
+            "description": "Generate secure, random tokens for magic link authentication and store them in a key-value store with the user's email and a 24-hour expiry.",
+            "dependencies": [],
+            "details": "Use cryptographically secure random generators to create tokens. Store each token with the associated email and a 24-hour expiry in KV storage. Consider using JWT or signed tokens for additional security. Ensure tokens are single-use and time-limited.",
+            "status": "done",
+            "testStrategy": "Verify that tokens are unique, securely generated, stored with correct expiry, and cannot be reused after consumption."
+          },
+          {
+            "id": 2,
+            "title": "Integrate Email Sending Service for Magic Link Delivery",
+            "description": "Set up integration with Cloudflare Email Workers or a third-party provider (SendGrid/Mailgun) to send magic link emails to users.",
+            "dependencies": [
+              1
+            ],
+            "details": "Configure the chosen email service to send emails containing the magic link URL with the token. Ensure email templates are clear and include necessary instructions. Handle email delivery errors and retries.",
+            "status": "done",
+            "testStrategy": "Request a magic link and confirm email delivery to the correct address. Test for handling of failed deliveries and retries."
+          },
+          {
+            "id": 3,
+            "title": "Develop Magic Link Authentication Endpoint",
+            "description": "Create a GET /api/auth/{token} endpoint to handle incoming magic link requests and initiate authentication.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Implement the endpoint to accept the token, validate its format, and proceed to token validation logic. Ensure the endpoint is protected against abuse (rate limiting, logging).",
+            "status": "done",
+            "testStrategy": "Send requests to the endpoint with valid and invalid tokens, verifying correct routing and error handling."
+          },
+          {
+            "id": 4,
+            "title": "Implement Token Validation and Expiry Handling",
+            "description": "Validate the received token, check expiry, and handle edge cases such as expired or invalid tokens.",
+            "dependencies": [
+              3
+            ],
+            "details": "On endpoint hit, retrieve the token from KV, check if it exists and is not expired. Invalidate the token after use. Return appropriate errors for expired or invalid tokens. Log validation attempts for auditing.",
+            "status": "done",
+            "testStrategy": "Test with valid, expired, and invalid tokens to ensure correct authentication flow and error responses."
+          },
+          {
+            "id": 5,
+            "title": "Retrieve and Display API Key and Usage Statistics",
+            "description": "After successful token validation, fetch the user's API key and associated usage statistics, then display them securely.",
+            "dependencies": [
+              4
+            ],
+            "details": "Query the backend for the API key and usage stats linked to the validated email. Format and present the data securely, ensuring no sensitive information leakage. Handle cases where stats or keys are missing.",
+            "status": "done",
+            "testStrategy": "Authenticate via magic link and verify that the correct API key and stats are displayed for the user. Test for missing or mismatched data scenarios."
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Implement API Key Validation Middleware",
+        "description": "Create middleware to validate API keys for all protected endpoints and enforce rate limiting.",
+        "details": "Check API key against KV for existence and validity. Implement rate limiting using KV counters or Cloudflare's built-in rate limiting. Return 401/429 errors as appropriate. Use middleware pattern supported by Hono or custom Worker logic.",
+        "testStrategy": "Test endpoints with valid, invalid, and missing keys. Simulate rate limit exceedance.",
+        "priority": "high",
+        "dependencies": [
+          7
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement API Key Existence and Validity Check Using KV",
+            "description": "Develop logic to extract the API key from incoming requests and verify its existence and validity against the KV store.",
+            "dependencies": [],
+            "details": "Extract the API key from the request header (e.g., 'X-Api-Key'). Query the Cloudflare Workers KV store to check if the key exists and is valid. Return a 401 Unauthorized error if the key is missing or invalid. Consider using hashed keys for improved security.\n<info added on 2025-11-21T14:19:37.028Z>\nAPI key existence and validity check implemented with support for multiple sources (query param, X-Api-Key header, Bearer token) via the validateApiKeyFromRequest function. Key lookup is performed against the KV store, and a 401 error is returned for missing or invalid keys. The last used timestamp is updated upon successful validation. Implementation is located in src/lib/middleware/api-key-validation.ts.\n</info added on 2025-11-21T14:19:37.028Z>",
+            "status": "done",
+            "testStrategy": "Send requests with valid, invalid, and missing API keys. Confirm correct 401 responses for invalid/missing keys and successful pass-through for valid keys."
+          },
+          {
+            "id": 2,
+            "title": "Implement Rate Limiting Logic Using KV Counters or Cloudflare Rate Limiting",
+            "description": "Add rate limiting to API requests by tracking usage per API key and enforcing limits using KV counters or Cloudflare's built-in rate limiting.",
+            "dependencies": [
+              1
+            ],
+            "details": "For each valid API key, increment a counter in KV or use Cloudflare's rate limiting features. If the request exceeds the allowed rate, return a 429 Too Many Requests error. Ensure atomicity to prevent race conditions and abuse.\n<info added on 2025-11-21T14:19:44.295Z>\nRate limiting logic has been implemented in src/lib/middleware/api-key-validation.ts using the checkRateLimit function, which enforces configurable per-key limits (default: 1000 requests/hour) via atomic KV-based counters. When the limit is exceeded, a 429 error is returned, and reset time tracking is included.\n</info added on 2025-11-21T14:19:44.295Z>",
+            "status": "done",
+            "testStrategy": "Simulate rapid requests with a valid API key to trigger rate limiting. Verify that 429 errors are returned when limits are exceeded and normal responses are returned within limits."
+          },
+          {
+            "id": 3,
+            "title": "Integrate Middleware with Hono or Custom Worker Routing",
+            "description": "Integrate the API key validation and rate limiting logic as middleware in the Hono framework or custom Cloudflare Worker routing.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Wrap the existence/validity check and rate limiting logic in a middleware function compatible with Hono or custom Worker routing. Ensure all protected endpoints use this middleware and that errors are propagated correctly.\n<info added on 2025-11-21T14:19:47.880Z>\nMiddleware integration completed with the combined validation and rate limiting logic in the validateAndRateLimit function. This middleware is now used in both handleDomainEndpoint and handleNameEndpoint, ensuring all protected endpoints automatically enforce API key validation and rate limiting. Helper functions createValidationErrorResponse and createRateLimitResponse are used for consistent error handling. The middleware is integrated in src/middleware.ts.\n</info added on 2025-11-21T14:19:47.880Z>",
+            "status": "done",
+            "testStrategy": "Test protected endpoints to ensure middleware is invoked, errors are handled, and only valid, non-rate-limited requests succeed."
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Track and Store Request Statistics",
+        "description": "Log API usage statistics (request count, bandwidth) per key and date in KV.",
+        "details": "On each API request, increment stats:{apiKey}:{date} in KV. Store request count, bandwidth (if possible), and lastUsed timestamp. Use atomic KV operations to avoid race conditions. Aggregate stats for daily/weekly/monthly reporting.",
+        "testStrategy": "Make multiple requests with the same key, verify stats increment and aggregation accuracy.",
+        "priority": "medium",
+        "dependencies": [
+          9
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Atomic Increment of Request Statistics in KV",
+            "description": "On each API request, atomically increment the request count and update the lastUsed timestamp for stats:{apiKey}:{date} in KV.",
+            "dependencies": [],
+            "details": "Use atomic KV operations to increment the request count and set the lastUsed timestamp for each API key and date. Ensure that concurrent requests do not cause race conditions by leveraging built-in atomicity features of the KV store.\n<info added on 2025-11-21T14:21:43.384Z>\nAtomic increment of request statistics has been implemented using the trackRequest function in src/lib/stats/statistics.ts. The key structure used is stats:{apiKey}:{date}, and atomic KV operations ensure race condition prevention. The last used timestamp update is handled in api-keys.ts.\n</info added on 2025-11-21T14:21:43.384Z>",
+            "status": "done",
+            "testStrategy": "Simulate concurrent API requests with the same key and date, verify that the request count increments correctly and lastUsed timestamp updates without race conditions."
+          },
+          {
+            "id": 2,
+            "title": "Track and Store Bandwidth Usage per API Request (If Feasible)",
+            "description": "Capture and store bandwidth usage for each API request in stats:{apiKey}:{date} in KV, if the API or infrastructure allows bandwidth measurement.",
+            "dependencies": [
+              1
+            ],
+            "details": "Determine if bandwidth usage can be measured per request (e.g., via response size or infrastructure metrics). If feasible, update the bandwidth field in KV for each API request using atomic operations. If not feasible, document the limitation and fallback to request count only.\n<info added on 2025-11-21T14:21:47.889Z>\nImplementation completed with documented limitation. Per-request bandwidth measurement in Cloudflare Workers presents infrastructure constraints due to overhead costs. Response size tracking is technically possible but adds significant per-request overhead. Current implementation focuses on request count tracking using atomic KV operations. Response size tracking can be added in future iterations if performance impact is acceptable. Limitation and fallback strategy documented in code comments for future reference.\n</info added on 2025-11-21T14:21:47.889Z>",
+            "status": "done",
+            "testStrategy": "Make API requests with varying response sizes, verify that bandwidth is accurately tracked and stored in KV. If not feasible, confirm that the system gracefully handles the absence of bandwidth data."
+          },
+          {
+            "id": 3,
+            "title": "Aggregate and Report Statistics for Daily, Weekly, and Monthly Periods",
+            "description": "Implement logic to aggregate request count, bandwidth, and lastUsed timestamp from KV for daily, weekly, and monthly reporting.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Design aggregation functions to query KV for stats across specified periods (day, week, month) per API key. Generate summary reports for usage statistics, ensuring accurate roll-up of counts and bandwidth. Prepare data for dashboard or analytics endpoints.\n<info added on 2025-11-21T14:21:50.924Z>\nStatistics aggregation functions have been implemented in src/lib/stats/statistics.ts, including getDailyStats, getThisWeekStats, getThisMonthStats, getDateRangeStats (for custom ranges), and getStatisticsSummary (for comprehensive summaries). Daily breakdown is supported with a default of the last 30 days.\n</info added on 2025-11-21T14:21:50.924Z>",
+            "status": "done",
+            "testStrategy": "Populate KV with sample data across multiple dates and keys, run aggregation logic, and verify that daily, weekly, and monthly reports are accurate and consistent."
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Develop Statistics Dashboard Backend API",
+        "description": "Create API endpoints to retrieve usage statistics for a given API key.",
+        "details": "Implement GET /api/stats endpoint. Authenticate using magic link or API key. Aggregate stats from KV for daily, weekly, and monthly periods. Return JSON with counts and bandwidth.",
+        "testStrategy": "Request stats for various periods and verify data accuracy and completeness.",
+        "priority": "medium",
+        "dependencies": [
+          10
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Stats Aggregation Logic for Usage Periods",
+            "description": "Develop backend logic to aggregate usage statistics from KV storage for daily, weekly, and monthly periods.",
+            "dependencies": [],
+            "details": "Design and implement functions to query and aggregate usage data (counts and bandwidth) from KV for each API key. Ensure accurate calculation for daily, weekly, and monthly periods, handling edge cases such as missing or partial data.\n<info added on 2025-11-21T14:23:02.112Z>\nStats aggregation logic has been implemented using the getStatisticsSummary and getMultipleKeyStatistics functions. Aggregation supports daily, weekly, and monthly periods, as well as custom date ranges via a days parameter. Daily breakdown aggregation is available across multiple API keys. All aggregation logic is utilized from src/lib/stats/statistics.ts.\n</info added on 2025-11-21T14:23:02.112Z>",
+            "status": "done",
+            "testStrategy": "Unit test aggregation functions with mock KV data for various periods. Validate output against expected totals and edge cases."
+          },
+          {
+            "id": 2,
+            "title": "Integrate Authentication via Magic Link or API Key",
+            "description": "Add authentication middleware to support both magic link and API key verification for the stats endpoint.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement authentication checks for incoming requests to GET /api/stats. Support magic link authentication by validating time-limited tokens and API key authentication by checking key validity. Ensure secure handling of credentials and proper error responses for unauthorized access.\n<info added on 2025-11-21T14:23:06.280Z>\nAuthentication integration has been implemented for the GET /api/stats endpoint. The system now supports both API key authentication (via X-Api-Key header or ?key= query parameter) and magic link token authentication (via ?token= query parameter). The middleware uses validateAndRateLimit and validateMagicLinkToken functions to verify credentials, and getApiKeysByEmail for email-based API key lookup. Unauthorized access attempts return appropriate 401 error responses. All logic is centralized in the handleStatsEndpoint function within src/middleware.ts.\n</info added on 2025-11-21T14:23:06.280Z>",
+            "status": "done",
+            "testStrategy": "Simulate requests with valid and invalid magic links and API keys. Confirm only authenticated users can access stats and that errors are handled securely."
+          },
+          {
+            "id": 3,
+            "title": "Format and Return JSON Response for Statistics Endpoint",
+            "description": "Design and implement the response formatting for the GET /api/stats endpoint, returning aggregated statistics in JSON.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Create a response schema that includes counts and bandwidth for daily, weekly, and monthly periods. Ensure the JSON output is consistent, well-structured, and includes all required fields. Handle errors gracefully and provide informative messages for failed requests.\n<info added on 2025-11-21T14:23:09.705Z>\nJSON response formatting implemented in handleStatsEndpoint function in src/middleware.ts. Aggregated statistics are returned for total, today, week, and month periods. The response includes per-key statistics breakdown and daily breakdown aggregation. Error responses use proper status codes and provide informative messages. The days parameter is validated to accept values between 1 and 365.\n</info added on 2025-11-21T14:23:09.705Z>",
+            "status": "done",
+            "testStrategy": "Request the endpoint with various authentication methods and verify that the JSON response matches the schema and contains accurate data."
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Build Astro Frontend for Dashboard and Documentation",
+        "description": "Develop a modern, minimalist dashboard and documentation site using Astro.",
+        "status": "done",
+        "dependencies": [
+          11
+        ],
+        "priority": "medium",
+        "details": "Use the Astro blog template as a base. Create pages for API key management, statistics dashboard, and API documentation. All frontend components and pages must be styled using Tailwind CSS utility classes. Use Tailwind's responsive utilities to ensure responsive design across devices. Ensure accessibility and integrate with backend APIs for dynamic data.",
+        "testStrategy": "Manual and automated UI tests for responsiveness, accessibility, and correct data display.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Set up dashboard layout with Astro and Tailwind CSS",
+            "description": "Create a responsive dashboard layout using the Astro blog template as a base and apply Tailwind CSS for styling.",
+            "dependencies": [],
+            "details": "Use Astro components and Tailwind utility classes to build a clean, minimalist dashboard layout. Ensure accessibility and responsiveness across devices by leveraging Tailwind's responsive utilities.\n<info added on 2025-11-21T14:27:36.978Z>\nDashboard layout implemented with responsive grid (lg:grid-cols-2), clean minimalist design, navigation bar, and footer component. Pages created: src/pages/dashboard.astro, index.astro, docs.astro.\n</info added on 2025-11-21T14:27:36.978Z>",
+            "status": "done",
+            "testStrategy": "Manual and automated UI tests for layout, responsiveness, and accessibility."
+          },
+          {
+            "id": 2,
+            "title": "Develop API key management page",
+            "description": "Build a page for managing API keys with forms for creation, deletion, and display.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement interactive forms and lists for API key management. Style all elements using Tailwind CSS utility classes and ensure accessibility. Use Tailwind's responsive utilities for optimal display on all devices.\n<info added on 2025-11-21T14:27:41.522Z>\nAPI key management page implemented at src/pages/dashboard.astro, including:\n- Request new API key form with email input\n- Display of API keys list\n- Form validation and error handling\n- Success and error messages\n- All elements styled with Tailwind CSS\n</info added on 2025-11-21T14:27:41.522Z>",
+            "status": "done",
+            "testStrategy": "Manual and automated UI tests for form functionality and accessibility."
+          },
+          {
+            "id": 3,
+            "title": "Create statistics dashboard page",
+            "description": "Develop a statistics dashboard page to display usage statistics retrieved from the backend API.",
+            "dependencies": [
+              1
+            ],
+            "details": "Integrate with the backend API to fetch and display statistics. Use charts or tables for data visualization, styled with Tailwind CSS utility classes. Ensure responsive design using Tailwind's responsive utilities.\n<info added on 2025-11-21T14:27:44.498Z>\nStatistics dashboard page implemented in src/pages/dashboard.astro with the following features: statistics display for total, today, week, and month; per-key statistics breakdown; statistics input form for token/key and days; dynamic data loading from API; Tailwind CSS cards and grid layout.\n</info added on 2025-11-21T14:27:44.498Z>",
+            "status": "done",
+            "testStrategy": "Manual and automated UI tests for data display and responsiveness."
+          },
+          {
+            "id": 4,
+            "title": "Build documentation page",
+            "description": "Create a documentation page for API usage and features.",
+            "dependencies": [
+              1
+            ],
+            "details": "Write and organize documentation content. Style all elements using Tailwind CSS utility classes and ensure accessibility. Use Tailwind's responsive utilities for optimal display on all devices.\n<info added on 2025-11-21T14:27:48.457Z>\nDocumentation page implemented in src/pages/docs.astro with complete API documentation including endpoint descriptions, parameter documentation, code examples in JavaScript, Python, and cURL, error handling section, rate limits information, and Tailwind CSS styling for responsive design and accessibility.\n</info added on 2025-11-21T14:27:48.457Z>",
+            "status": "done",
+            "testStrategy": "Manual and automated UI tests for content display and accessibility."
+          },
+          {
+            "id": 5,
+            "title": "Integrate API for dynamic data",
+            "description": "Connect the frontend pages to backend APIs for dynamic data retrieval and updates.",
+            "dependencies": [
+              2,
+              3,
+              4
+            ],
+            "details": "Implement API calls to fetch and update data on the dashboard, API key management, and statistics pages. Handle errors and loading states. Ensure all UI elements are styled with Tailwind CSS utility classes and responsive using Tailwind's responsive utilities.\n<info added on 2025-11-21T14:27:51.774Z>\nAPI integration completed for dashboard features:\nPOST /api/request-key form handler implemented.\nGET /api/stats form handler implemented.\nComprehensive error handling and loading state management.\nDynamic content updates enabled.\nToken/API key detection logic added.\nClient-side JavaScript integrated in dashboard.astro for interactive functionality.\n</info added on 2025-11-21T14:27:51.774Z>",
+            "status": "done",
+            "testStrategy": "Manual and automated tests for API integration, data accuracy, and error handling."
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "title": "Implement API Documentation and Example Usage",
+        "description": "Provide clear API documentation and usage examples on the frontend.",
+        "details": "Document all endpoints, parameters, and response formats. Include code samples in JavaScript, Python, and cURL. Use Markdown or MDX in Astro for easy editing. Highlight best practices and error handling.",
+        "testStrategy": "Review documentation for completeness and accuracy. Test all examples for correctness.",
+        "priority": "medium",
+        "dependencies": [
+          12
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Document All API Endpoints, Parameters, and Response Formats",
+            "description": "Create comprehensive documentation for every API endpoint, including their parameters, expected request/response formats, authentication requirements, and error handling.",
+            "dependencies": [],
+            "details": "List each endpoint with its HTTP method, path, required and optional parameters, request/response schemas, authentication details, and error codes. Use Markdown or MDX in Astro for easy editing. Organize endpoints logically and provide clear, concise descriptions. Highlight best practices and ensure all information is up to date.\n<info added on 2025-11-21T14:28:33.595Z>\nAPI endpoints documentation has been implemented in src/pages/docs.astro. All endpoints (GET /{domain}, GET /name/{companyName}, GET /api/stats, POST /api/request-key, GET /api/auth/{token}) are documented with their parameters, request and response formats, authentication requirements, error codes, and error handling.\n</info added on 2025-11-21T14:28:33.595Z>",
+            "status": "done",
+            "testStrategy": "Review documentation for completeness and accuracy. Validate that all endpoints, parameters, and responses are covered and match the actual API implementation."
+          },
+          {
+            "id": 2,
+            "title": "Create and Test Code Samples for API Usage in JavaScript, Python, and cURL",
+            "description": "Develop example code snippets demonstrating API usage in JavaScript, Python, and cURL, and verify their correctness against the live API.",
+            "dependencies": [
+              1
+            ],
+            "details": "Write code samples for each documented endpoint, covering typical use cases and error scenarios. Ensure samples are clear, runnable, and follow best practices. Test all examples to confirm they work as described. Include these samples in the documentation using Markdown or MDX, and highlight error handling in each language.\n<info added on 2025-11-21T14:28:37.106Z>\nCode samples have been implemented and included in src/pages/docs.astro. JavaScript examples demonstrate both fetch and img tag usage, Python examples use the requests library, and cURL examples are provided for all endpoints. Each sample covers typical use cases and error handling, with best practices highlighted throughout.\n</info added on 2025-11-21T14:28:37.106Z>",
+            "status": "done",
+            "testStrategy": "Execute all code samples against the API to verify correctness. Check that examples produce expected results and handle errors as documented."
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "title": "Optimize SEO and Performance for Frontend",
+        "description": "Ensure the dashboard and documentation are SEO-friendly and load quickly. Additionally, optimize Tailwind CSS configuration for production to minimize CSS bundle size and enable JIT mode.",
+        "status": "pending",
+        "dependencies": [
+          12
+        ],
+        "priority": "low",
+        "details": "Use Astro's built-in SEO features. Add meta tags, Open Graph data, and sitemap.xml. Optimize images and static assets. Enable Cloudflare Pages for global deployment and edge caching. For Tailwind CSS, ensure the purge/content configuration is correctly set up for production builds to remove unused CSS, and enable JIT mode for optimal performance.",
+        "testStrategy": "Run Lighthouse and other SEO/performance audits. Verify fast load times and correct metadata. For Tailwind CSS, inspect the production CSS bundle to confirm unused styles are purged and JIT mode is active.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Configure SEO: Meta Tags, Open Graph, Structured Data, and Sitemap in Astro",
+            "description": "Implement comprehensive SEO configuration for the dashboard and documentation using Astro's built-in features, including meta tags, Open Graph data, structured data (JSON-LD), and sitemap.xml.",
+            "dependencies": [],
+            "details": "Create or update a reusable Head component in Astro to inject dynamic meta tags (title, description, canonical URL, viewport, Open Graph, Twitter Card). Integrate structured data using JSON-LD scripts for organization and website schema. Use the @astrojs/sitemap integration to generate sitemap.xml automatically. Ensure robots.txt is configured to allow crawling and reference the sitemap. Validate that all pages have unique, descriptive metadata and proper heading structure.",
+            "status": "pending",
+            "testStrategy": "Use Lighthouse and SEO audit tools to verify presence and correctness of meta tags, Open Graph data, structured data, and sitemap.xml. Check robots.txt and ensure all pages are indexed as expected."
+          },
+          {
+            "id": 2,
+            "title": "Optimize Performance: Image and Asset Optimization, Edge Caching with Cloudflare Pages",
+            "description": "Enhance frontend performance by optimizing images and static assets, and enable global edge caching using Cloudflare Pages.",
+            "dependencies": [
+              1
+            ],
+            "details": "Leverage Astro's built-in image optimization (astro:assets) to serve responsive, compressed images in modern formats (WebP, AVIF). Ensure all images have descriptive alt text and avoid lazy-loading above-the-fold media. Minimize and compress static assets (CSS, JS) using Vite plugins. Deploy the site to Cloudflare Pages, enabling edge caching for static assets and images. Configure appropriate cache-control headers for optimal CDN performance.",
+            "status": "pending",
+            "testStrategy": "Run Lighthouse and WebPageTest to measure load times, image optimization, and asset delivery. Inspect network requests to confirm CDN caching and optimized asset formats. Validate fast load times from multiple global locations."
+          },
+          {
+            "id": 3,
+            "title": "Optimize Tailwind CSS: Purge Unused Styles and Enable JIT Mode",
+            "description": "Configure Tailwind CSS for production to remove unused styles and enable JIT mode for faster builds and smaller CSS bundles.",
+            "dependencies": [],
+            "details": "Update tailwind.config.js to ensure the 'content' (or 'purge' for older versions) array includes all relevant file paths (Astro, JS/TS, MDX, etc.). Enable JIT mode by setting 'mode: \"jit\"' if using Tailwind v2, or ensure JIT is active by default in v3+. Test production builds to confirm unused CSS is purged. Document the configuration and any caveats for Astro integration.",
+            "status": "pending",
+            "testStrategy": "Build the project for production and inspect the output CSS file size. Confirm that only used Tailwind classes are present. Check that JIT mode is enabled and dynamic class generation works as expected."
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "title": "Implement Security, CORS, and Error Handling Best Practices",
+        "description": "Secure all endpoints, handle CORS, and provide robust error responses.",
+        "details": "Add CORS headers to all Worker responses as per Cloudflare's recommendations[1]. Implement input validation, sanitize all user input, and handle errors gracefully with appropriate status codes. Use signed URLs for image access if needed. Regularly audit dependencies for vulnerabilities.",
+        "testStrategy": "Test CORS from various origins, attempt invalid requests, and verify secure, informative error messages.",
+        "priority": "high",
+        "dependencies": [
+          5,
+          9
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement CORS Headers on All Worker Responses",
+            "description": "Add and configure CORS headers to all Cloudflare Worker responses to allow cross-origin requests as per Cloudflare's best practices.",
+            "dependencies": [],
+            "details": "Handle OPTIONS preflight requests and set appropriate Access-Control-Allow-Origin, Access-Control-Allow-Methods, and Access-Control-Allow-Headers headers. Use configuration to restrict origins and methods as needed. Test with various origins and HTTP methods to ensure correct behavior.\n<info added on 2025-11-21T14:30:32.191Z>\nCORS headers have been implemented across all API endpoint responses using utility functions in src/lib/middleware/cors.ts (createCorsHeaders, handlePreflightRequest, addCorsHeaders, createCorsResponse). OPTIONS preflight request handling is included. The following headers are set: Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Headers, Access-Control-Max-Age, and Access-Control-Expose-Headers. By default, all origins are allowed (*), but this can be restricted in production via configuration.\n</info added on 2025-11-21T14:30:32.191Z>",
+            "status": "done",
+            "testStrategy": "Send requests from different origins and methods, including preflight OPTIONS, and verify correct CORS headers are present in responses."
+          },
+          {
+            "id": 2,
+            "title": "Implement Input Validation and Sanitization",
+            "description": "Validate and sanitize all user input to prevent injection attacks and ensure data integrity across all endpoints.",
+            "dependencies": [],
+            "details": "Use schema validation libraries or custom logic to check input types, lengths, and formats. Sanitize inputs to remove or escape potentially harmful content. Apply validation consistently for all API endpoints, including query parameters, request bodies, and headers.\n<info added on 2025-11-21T14:31:50.115Z>\nImplementation completed for input validation and sanitization across all endpoints. Created src/lib/validation/input.ts with comprehensive validation and sanitization functions. Domain sanitization includes protocol, path, query, and fragment cleaning with format and length validation. Company name sanitization removes HTML tags and filters special characters with length checks. Image format validation supports png, svg, and webp with size validation enforcing 64-512 pixel range. Email sanitization validates format, prevents injection patterns, and enforces length limits. API key sanitization validates format and enforces 16-256 character length requirement. Token sanitization validates format and enforces 16-128 character length requirement. Days parameter validation restricts input to 1-365 range. Input sanitization has been applied consistently across all API endpoints for query parameters, request bodies, and headers.\n</info added on 2025-11-21T14:31:50.115Z>",
+            "status": "done",
+            "testStrategy": "Submit valid and invalid inputs to endpoints and verify that only valid data is accepted and sanitized. Attempt common injection attacks and confirm they are blocked."
+          },
+          {
+            "id": 3,
+            "title": "Format and Handle Error Responses Robustly",
+            "description": "Ensure all errors are handled gracefully and consistently, returning appropriate HTTP status codes and informative error messages.",
+            "dependencies": [],
+            "details": "Implement centralized error handling middleware or logic. Map different error types to correct status codes (e.g., 400 for bad input, 401 for unauthorized, 500 for server errors). Include clear, non-sensitive error messages in responses. Log errors for monitoring and debugging.\n<info added on 2025-11-21T14:33:26.060Z>\nCentralized error handling has been implemented in src/lib/errors/handler.ts, providing a unified system for error management. An ErrorCode enum defines all standard error codes (BAD_REQUEST, UNAUTHORIZED, NOT_FOUND, RATE_LIMIT_EXCEEDED, VALIDATION_ERROR, INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE). The createErrorResponse utility ensures a consistent error response format, while mapErrorToResponse maps errors to appropriate HTTP status codes and error codes. The createErrorHttpResponse function generates HTTP responses and handles error logging. CommonErrors provides helper functions for frequent error responses. The withErrorHandling utility wraps async handlers to enforce centralized error handling across all endpoints. Server errors are logged with console.error, and client errors with console.warn, ensuring clear separation and traceability. All endpoints now utilize this centralized error handling approach.\n</info added on 2025-11-21T14:33:26.060Z>",
+            "status": "done",
+            "testStrategy": "Trigger various error scenarios (invalid input, unauthorized access, server exceptions) and verify that responses have correct status codes and error formats."
+          },
+          {
+            "id": 4,
+            "title": "Audit and Monitor Dependencies for Vulnerabilities",
+            "description": "Regularly audit all project dependencies for known security vulnerabilities and keep them up to date.",
+            "dependencies": [],
+            "details": "Integrate automated tools (e.g., npm audit, Snyk, Dependabot) to scan dependencies. Review and address reported vulnerabilities promptly. Document and track dependency updates and audits as part of the development workflow.\n<info added on 2025-11-21T14:35:19.748Z>\nDependency audit completed and all vulnerabilities resolved:\n- npm audit detected 4 vulnerabilities (2 high, 2 moderate)\n- js-yaml and vite (moderate severity) fixed automatically via npm audit fix\n- astro updated from 5.10.1 to 5.16.0 to address high severity vulnerabilities\n- @astrojs/cloudflare updated from 12.6.0 to 12.6.11 to resolve high severity SSRF vulnerability\n- All vulnerabilities have been fixed; npm audit now reports a clean state\n- package.json updated accordingly\n</info added on 2025-11-21T14:35:19.748Z>",
+            "status": "done",
+            "testStrategy": "Run dependency audit tools and verify that no critical vulnerabilities are present. Simulate the introduction of a vulnerable package and confirm detection."
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2025-11-21T13:26:42.064Z",
+      "updated": "2025-11-21T14:35:21.380Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

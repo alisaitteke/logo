@@ -1,0 +1,143 @@
+---
+// Logo CDN Homepage
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Logo CDN - Simple Logo Delivery Service</title>
+		<meta name="description" content="Get company logos instantly via simple API. Support for domain and company name lookups with format, size, and greyscale options." />
+	</head>
+	<body class="min-h-screen bg-gray-50">
+		<!-- Navigation -->
+		<nav class="bg-white shadow-sm border-b border-gray-200">
+			<div class="container mx-auto px-4 py-4">
+				<div class="flex items-center justify-between">
+					<div class="flex items-center space-x-8">
+						<a href="/" class="text-xl font-bold text-gray-900">Logo CDN</a>
+						<div class="hidden md:flex space-x-4">
+							<a href="/" class="px-3 py-2 text-gray-700 hover:text-gray-900 font-medium">Home</a>
+							<a href="/dashboard" class="px-3 py-2 text-gray-600 hover:text-gray-900">Dashboard</a>
+							<a href="/docs" class="px-3 py-2 text-gray-600 hover:text-gray-900">Documentation</a>
+						</div>
+					</div>
+					<a
+						href="/dashboard"
+						class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+					>
+						Get Started
+					</a>
+				</div>
+			</div>
+		</nav>
+
+		<!-- Hero Section -->
+		<main class="container mx-auto px-4 py-16">
+			<div class="text-center mb-16">
+				<h1 class="text-5xl font-bold text-gray-900 mb-4">
+					Simple Logo Delivery Service
+				</h1>
+				<p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+					Get company logos instantly via a simple API. Support for domain and company name lookups with format, size, and greyscale options.
+				</p>
+				<div class="flex justify-center space-x-4">
+					<a
+						href="/dashboard"
+						class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors font-medium"
+					>
+						Get API Key
+					</a>
+					<a
+						href="/docs"
+						class="bg-gray-200 text-gray-800 px-6 py-3 rounded-md hover:bg-gray-300 transition-colors font-medium"
+					>
+						View Docs
+					</a>
+				</div>
+			</div>
+
+			<!-- Features -->
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+				<div class="bg-white rounded-lg shadow-md p-6">
+					<div class="text-3xl mb-4">🚀</div>
+					<h3 class="text-xl font-semibold text-gray-800 mb-2">Fast & Simple</h3>
+					<p class="text-gray-600">
+						Get logos instantly with a simple URL. No complex setup required.
+					</p>
+				</div>
+				<div class="bg-white rounded-lg shadow-md p-6">
+					<div class="text-3xl mb-4">🎨</div>
+					<h3 class="text-xl font-semibold text-gray-800 mb-2">Multiple Formats</h3>
+					<p class="text-gray-600">
+						Support for PNG, SVG, and WebP formats with size and greyscale options.
+					</p>
+				</div>
+				<div class="bg-white rounded-lg shadow-md p-6">
+					<div class="text-3xl mb-4">⚡</div>
+					<h3 class="text-xl font-semibold text-gray-800 mb-2">Global CDN</h3>
+					<p class="text-gray-600">
+						Powered by Cloudflare's global network for fast delivery worldwide.
+					</p>
+				</div>
+			</div>
+
+			<!-- Quick Start -->
+			<div class="bg-white rounded-lg shadow-md p-8 mb-16">
+				<h2 class="text-2xl font-semibold text-gray-800 mb-4">Quick Start</h2>
+				<div class="space-y-4">
+					<div>
+						<h3 class="font-semibold text-gray-700 mb-2">1. Get Your API Key</h3>
+						<p class="text-gray-600 mb-3">
+							Visit the <a href="/dashboard" class="text-blue-600 hover:underline">Dashboard</a> and enter your email to receive a magic link with your API key.
+						</p>
+					</div>
+					<div>
+						<h3 class="font-semibold text-gray-700 mb-2">2. Use in Your Code</h3>
+						<pre class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"><code>&lt;img src="https://logo.alisait.com/shopify.com?key=your_api_key&format=png&size=256" alt="Shopify logo" /&gt;</code></pre>
+					</div>
+					<div>
+						<h3 class="font-semibold text-gray-700 mb-2">3. Or by Company Name</h3>
+						<pre class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"><code>&lt;img src="https://logo.alisait.com/name/shopify?key=your_api_key&format=svg" alt="Shopify logo" /&gt;</code></pre>
+					</div>
+				</div>
+			</div>
+
+			<!-- Example Usage -->
+			<div class="bg-white rounded-lg shadow-md p-8">
+				<h2 class="text-2xl font-semibold text-gray-800 mb-4">Example Usage</h2>
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+					<div>
+						<h3 class="font-semibold text-gray-700 mb-2">Domain-based</h3>
+						<pre class="bg-gray-100 p-3 rounded text-xs overflow-x-auto"><code>https://logo.alisait.com/
+  shopify.com
+  ?key=your_api_key
+  &format=png
+  &size=256
+  &greyscale=false</code></pre>
+					</div>
+					<div>
+						<h3 class="font-semibold text-gray-700 mb-2">Name-based</h3>
+						<pre class="bg-gray-100 p-3 rounded text-xs overflow-x-auto"><code>https://logo.alisait.com/
+  name/shopify
+  ?key=your_api_key
+  &format=svg
+  &size=128</code></pre>
+					</div>
+				</div>
+			</div>
+		</main>
+
+		<!-- Footer -->
+		<footer class="bg-white border-t border-gray-200 mt-16">
+			<div class="container mx-auto px-4 py-8">
+				<div class="text-center text-gray-600">
+					<p>&copy; 2025 Logo CDN. Built with Astro and Cloudflare Workers.</p>
+				</div>
+			</div>
+		</footer>
+	</body>
+</html>
+

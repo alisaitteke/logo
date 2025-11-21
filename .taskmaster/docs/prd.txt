@@ -1,0 +1,203 @@
+<context>
+# Overview
+Logo CDN servisi, geliştiricilerin ve işletmelerin yüksek kaliteli şirket logolarına kolayca erişmesini sağlayan bir hizmettir. Kullanıcılar domain adı veya şirket ismi ile basit bir URL üzerinden logoları alabilirler. Sistem, birden fazla logo provider'ından (getlogo.dev, logo.dev gibi) logoları çekerek kendi altyapısına kaydeder ve optimize edilmiş şekilde serve eder. Cloudflare Workers, R2, KV ve Images kullanılarak global CDN üzerinden hızlı ve güvenilir bir servis sağlanır.
+
+# Core Features
+1. **Logo Fetching API**: Domain veya şirket ismi ile logo çekme
+   - Domain bazlı: `https://logo.alisait.com/shopify.com?greyscale=true&format=png&key=XXX`
+   - İsim bazlı: `https://logo.alisait.com/name/shopify?key=XXX&size=256`
+   - Parametreler: greyscale, format (png/svg/webp), size, key
+
+2. **Multi-Provider Failover System**: 
+   - Birden fazla logo provider'ından (getlogo.dev, logo.dev) logo çekme
+   - Provider'larda yoksa bir sonrakine geçme
+   - Mümkün olan en büyük boyutta logo alma
+   - Logoları R2'ye kaydetme ve cache'leme
+
+3. **Email-Based Key System**:
+   - Kullanıcılar sadece email girerek API key alabilir
+   - Email'e magic link gönderilir
+   - Magic link ile giriş yapıldığında key ve istatistikler gösterilir
+   - Login/register sistemi yok, sadece email doğrulama
+
+4. **Statistics Dashboard**:
+   - API key bazlı istek sayısı
+   - Günlük/haftalık/aylık istatistikler
+   - KV ile hızlı istatistik takibi
+
+5. **Image Optimization**:
+   - Cloudflare Images kullanarak otomatik optimizasyon
+   - Format dönüşümleri (PNG, SVG, WebP)
+   - Boyut ayarlamaları
+   - Greyscale filtreleme
+
+# User Experience
+**User Personas:**
+- Geliştiriciler: API'yi kullanarak logoları projelerine entegre eder
+- İşletmeler: Kendi logolarını veya partner logolarını gösterir
+
+**Key User Flows:**
+1. Email girme → Magic link alma → Key görüntüleme ve istatistikler
+2. API kullanımı: URL'ye istek atma → Logo alma
+3. Dashboard: İstatistikleri görüntüleme
+
+**UI/UX Considerations:**
+- Astro blog template ile modern, temiz arayüz
+- Tailwind CSS framework kullanılarak responsive ve modern tasarım
+- Basit ve anlaşılır API dokümantasyonu
+- Minimalist dashboard tasarımı
+</context>
+<PRD>
+# Technical Architecture
+
+## System Components
+1. **Cloudflare Workers**: API endpoint'leri ve routing
+2. **R2 Storage**: Logo dosyalarının kalıcı depolanması
+3. **KV Storage**: 
+   - API key'ler ve email mapping
+   - İstatistik verileri (request counts)
+   - Magic link token'ları
+4. **Cloudflare Images**: Logo optimizasyonu ve dönüşümler
+5. **Astro Frontend**: Dashboard ve dokümantasyon arayüzü
+6. **Tailwind CSS**: CSS framework for responsive, modern UI design
+
+## Data Models
+
+### API Key
+- `key`: Unique API key (publishable key)
+- `email`: Kullanıcı email'i
+- `createdAt`: Oluşturulma tarihi
+- `requestCount`: Toplam istek sayısı
+- `lastUsed`: Son kullanım tarihi
+
+### Logo Cache (R2)
+- `domain` veya `name` bazlı key'ler
+- Orijinal format ve boyut
+- Provider bilgisi
+
+### Statistics (KV)
+- Key: `stats:{apiKey}:{date}`
+- Value: Request count, bandwidth, etc.
+
+### Magic Link Token (KV)
+- Key: `magic:{token}`
+- Value: `{email, expiresAt}`
+
+## APIs and Integrations
+
+### External Logo Providers
+- getlogo.dev API
+- logo.dev API (veya diğer provider'lar)
+- Failover mekanizması ile sırayla deneme
+
+### Internal APIs
+- `GET /{domain}`: Domain ile logo alma
+- `GET /name/{companyName}`: İsim ile logo alma
+- `POST /api/request-key`: Email ile key isteme
+- `GET /api/auth/{token}`: Magic link ile giriş
+- `GET /api/stats`: İstatistikleri görüntüleme
+
+## Infrastructure Requirements
+- Cloudflare Workers (free tier yeterli başlangıç için)
+- R2 Storage (logo dosyaları için)
+- KV Storage (key'ler ve istatistikler için)
+- Cloudflare Images (optimizasyon için)
+- Astro deployment (Cloudflare Pages)
+
+# Development Roadmap
+
+## Phase 1: Foundation & Setup
+- Astro blog template ile proje init
+- Tailwind CSS kurulumu ve yapılandırması
+- Cloudflare Workers, R2, KV, Images setup
+- Temel routing yapısı
+- Environment variables ve config
+
+## Phase 2: Logo Fetching & Storage
+- External provider API entegrasyonları (getlogo.dev, logo.dev)
+- Failover mekanizması implementasyonu
+- Logo fetch ve R2'ye kaydetme
+- Cache kontrolü ve yeniden fetch mantığı
+
+## Phase 3: API Endpoints
+- Domain bazlı logo endpoint (`/{domain}`)
+- İsim bazlı logo endpoint (`/name/{name}`)
+- Query parameter parsing (size, format, greyscale, key)
+- API key validation
+- Error handling ve fallback responses
+
+## Phase 4: Image Processing
+- Cloudflare Images entegrasyonu
+- Format dönüşümleri (PNG, SVG, WebP)
+- Boyut ayarlamaları
+- Greyscale filtreleme
+- Optimize edilmiş response'lar
+
+## Phase 5: Email & Key System
+- Email validation
+- Magic link token generation
+- Email gönderme (Cloudflare Email Workers veya external service)
+- Magic link doğrulama
+- API key generation ve KV'ye kaydetme
+- Key lookup ve validation
+
+## Phase 6: Statistics & Dashboard
+- Request tracking (KV'de)
+- İstatistik hesaplama (günlük/haftalık/aylık)
+- Dashboard UI (Astro)
+- Key ve istatistik görüntüleme
+- Basit analytics görselleştirme
+
+## Phase 7: Frontend & Documentation
+- Astro ile dashboard sayfası (Tailwind CSS ile)
+- API dokümantasyonu sayfası
+- Örnek kullanımlar
+- Tailwind CSS ile responsive tasarım
+- SEO optimizasyonu
+
+# Logical Dependency Chain
+
+1. **Foundation First**: Astro setup, Cloudflare services config → Hemen görünür bir şey
+2. **Basic Logo Fetching**: Bir provider'dan logo çekme, R2'ye kaydetme → Test edilebilir endpoint
+3. **API Endpoints**: Domain/name endpoint'leri, basit key validation → Kullanılabilir API
+4. **Failover System**: Multi-provider support → Güvenilir servis
+5. **Image Processing**: Cloudflare Images entegrasyonu → Optimize edilmiş response'lar
+6. **Key System**: Email, magic link, key generation → Güvenlik ve kullanım takibi
+7. **Statistics**: Request tracking, dashboard → Kullanıcı değeri
+8. **Polish**: Frontend iyileştirmeleri, dokümantasyon → Production ready
+
+# Risks and Mitigations
+
+## Technical Challenges
+- **Provider API değişiklikleri**: Failover mekanizması ile risk azaltılır
+- **Rate limiting**: Cloudflare Workers'ın built-in rate limiting kullanılır
+- **Storage costs**: R2'nin düşük maliyeti ve cache stratejisi ile kontrol edilir
+- **Image processing latency**: Cloudflare Images'in edge processing'i ile minimize edilir
+
+## MVP Scope
+- İlk MVP'de tek provider (getlogo.dev) ile başlanabilir
+- Basit key system (email validation olmadan da başlanabilir)
+- Temel istatistikler (sadece request count)
+- Minimal frontend (sadece key alma ve istatistik görüntüleme)
+
+## Resource Constraints
+- Cloudflare free tier limitleri göz önünde bulundurulmalı
+- R2 storage için budget planlanmalı
+- Email gönderme için service seçimi (Cloudflare Email Workers veya SendGrid/Mailgun)
+
+# Appendix
+
+## Research Findings
+- getlogo.dev: Domain bazlı logo API, ücretsiz tier mevcut
+- logo.dev: Alternatif logo provider
+- Cloudflare Images: Otomatik optimizasyon, format dönüşümü, edge processing
+
+## Technical Specifications
+- **API Response Format**: Image binary (PNG/SVG/WebP)
+- **Cache Strategy**: R2'de kalıcı, KV'de metadata
+- **Key Format**: UUID v4 veya base64 encoded random string
+- **Magic Link Expiry**: 24 saat
+- **Supported Formats**: PNG, SVG, WebP
+- **Size Range**: 64px - 512px (veya daha büyük)
+</PRD>
+

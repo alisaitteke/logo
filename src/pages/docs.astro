@@ -1,0 +1,242 @@
+---
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content="Astro" />
+		<title>Logo CDN - API Documentation</title>
+	</head>
+	<body class="min-h-screen bg-gray-50">
+		<div class="container mx-auto px-4 py-8 max-w-4xl">
+			<header class="mb-8">
+				<h1 class="text-4xl font-bold text-gray-900 mb-2">Logo CDN API Documentation</h1>
+				<p class="text-gray-600">Complete guide to using the Logo CDN API</p>
+			</header>
+
+			<nav class="mb-8 border-b border-gray-200">
+				<div class="flex space-x-4">
+					<a href="/" class="px-4 py-2 text-gray-600 hover:text-gray-900">Home</a>
+					<a href="/dashboard" class="px-4 py-2 text-gray-600 hover:text-gray-900">Dashboard</a>
+					<a href="/docs" class="px-4 py-2 text-blue-600 border-b-2 border-blue-600 font-medium">Documentation</a>
+				</div>
+			</nav>
+
+			<div class="bg-white rounded-lg shadow-md p-8 space-y-8">
+				<!-- Getting Started -->
+				<section>
+					<h2 class="text-2xl font-semibold text-gray-800 mb-4">Getting Started</h2>
+					<p class="text-gray-700 mb-4">
+						To use the Logo CDN API, you need an API key. Request one by visiting the 
+						<a href="/dashboard" class="text-blue-600 hover:underline">Dashboard</a> and entering your email address.
+					</p>
+					<p class="text-gray-700">
+						You'll receive a magic link via email. Click the link to view your API key and start using the service.
+					</p>
+				</section>
+
+				<!-- Authentication -->
+				<section>
+					<h2 class="text-2xl font-semibold text-gray-800 mb-4">Authentication</h2>
+					<p class="text-gray-700 mb-4">
+						All API requests require an API key. You can provide it in one of three ways:
+					</p>
+					<ul class="list-disc list-inside space-y-2 text-gray-700 ml-4">
+						<li>Query parameter: <code class="bg-gray-100 px-2 py-1 rounded">?key=your_api_key</code></li>
+						<li>Header: <code class="bg-gray-100 px-2 py-1 rounded">X-Api-Key: your_api_key</code></li>
+						<li>Bearer token: <code class="bg-gray-100 px-2 py-1 rounded">Authorization: Bearer your_api_key</code></li>
+					</ul>
+				</section>
+
+				<!-- Endpoints -->
+				<section>
+					<h2 class="text-2xl font-semibold text-gray-800 mb-4">API Endpoints</h2>
+
+					<!-- Get Logo by Domain -->
+					<div class="mb-6 pb-6 border-b border-gray-200">
+						<h3 class="text-xl font-semibold text-gray-800 mb-2">Get Logo by Domain</h3>
+						<code class="block bg-gray-100 p-3 rounded mb-3 text-sm">
+							GET /&#123;domain&#125;?key=your_api_key&format=png&size=256&greyscale=false
+						</code>
+						<p class="text-gray-700 mb-3">Retrieve a logo by domain name.</p>
+						
+						<h4 class="font-semibold text-gray-700 mb-2">Parameters:</h4>
+						<ul class="list-disc list-inside space-y-1 text-gray-700 ml-4 mb-3">
+							<li><code class="bg-gray-100 px-1 rounded">domain</code> - Domain name (e.g., "shopify.com")</li>
+							<li><code class="bg-gray-100 px-1 rounded">key</code> - Your API key (required)</li>
+							<li><code class="bg-gray-100 px-1 rounded">format</code> - Image format: png, svg, or webp (default: png)</li>
+							<li><code class="bg-gray-100 px-1 rounded">size</code> - Image size in pixels: 64-512 (optional)</li>
+							<li><code class="bg-gray-100 px-1 rounded">greyscale</code> - Convert to greyscale: true or false (default: false)</li>
+						</ul>
+
+						<h4 class="font-semibold text-gray-700 mb-2">Example:</h4>
+						<pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"><code>&lt;img src="https://logo.alisait.com/shopify.com?key=your_api_key&format=png&size=256" alt="Shopify logo" /&gt;</code></pre>
+					</div>
+
+					<!-- Get Logo by Company Name -->
+					<div class="mb-6 pb-6 border-b border-gray-200">
+						<h3 class="text-xl font-semibold text-gray-800 mb-2">Get Logo by Company Name</h3>
+						<code class="block bg-gray-100 p-3 rounded mb-3 text-sm">
+							GET /name/&#123;companyName&#125;?key=your_api_key&format=png&size=256&greyscale=false
+						</code>
+						<p class="text-gray-700 mb-3">Retrieve a logo by company name.</p>
+						
+						<h4 class="font-semibold text-gray-700 mb-2">Parameters:</h4>
+						<ul class="list-disc list-inside space-y-1 text-gray-700 ml-4 mb-3">
+							<li><code class="bg-gray-100 px-1 rounded">companyName</code> - Company name (e.g., "shopify")</li>
+							<li><code class="bg-gray-100 px-1 rounded">key</code> - Your API key (required)</li>
+							<li><code class="bg-gray-100 px-1 rounded">format</code> - Image format: png, svg, or webp (default: png)</li>
+							<li><code class="bg-gray-100 px-1 rounded">size</code> - Image size in pixels: 64-512 (optional)</li>
+							<li><code class="bg-gray-100 px-1 rounded">greyscale</code> - Convert to greyscale: true or false (default: false)</li>
+						</ul>
+
+						<h4 class="font-semibold text-gray-700 mb-2">Example:</h4>
+						<pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"><code>&lt;img src="https://logo.alisait.com/name/shopify?key=your_api_key&format=svg&size=128" alt="Shopify logo" /&gt;</code></pre>
+					</div>
+
+					<!-- Get Statistics -->
+					<div class="mb-6 pb-6 border-b border-gray-200">
+						<h3 class="text-xl font-semibold text-gray-800 mb-2">Get Usage Statistics</h3>
+						<code class="block bg-gray-100 p-3 rounded mb-3 text-sm">
+							GET /api/stats?key=your_api_key&days=30
+						</code>
+						<p class="text-gray-700 mb-3">Retrieve usage statistics for your API key(s).</p>
+						
+						<h4 class="font-semibold text-gray-700 mb-2">Parameters:</h4>
+						<ul class="list-disc list-inside space-y-1 text-gray-700 ml-4 mb-3">
+							<li><code class="bg-gray-100 px-1 rounded">key</code> - Your API key (or use <code class="bg-gray-100 px-1 rounded">token</code> for magic link)</li>
+							<li><code class="bg-gray-100 px-1 rounded">days</code> - Number of days to include in daily breakdown (1-365, default: 30)</li>
+						</ul>
+
+						<h4 class="font-semibold text-gray-700 mb-2">Response:</h4>
+						<pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"><code>{`{
+  "totalRequests": 1234,
+  "todayRequests": 50,
+  "thisWeekRequests": 300,
+  "thisMonthRequests": 800,
+  "keys": [...],
+  "dailyBreakdown": [...]
+}`}</code></pre>
+					</div>
+
+					<!-- Request API Key -->
+					<div>
+						<h3 class="text-xl font-semibold text-gray-800 mb-2">Request API Key</h3>
+						<code class="block bg-gray-100 p-3 rounded mb-3 text-sm">
+							POST /api/request-key
+						</code>
+						<p class="text-gray-700 mb-3">Request a new API key by email.</p>
+						
+						<h4 class="font-semibold text-gray-700 mb-2">Request Body:</h4>
+						<pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto mb-3"><code>{`{
+  "email": "your@email.com"
+}`}</code></pre>
+
+						<h4 class="font-semibold text-gray-700 mb-2">Response:</h4>
+						<pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"><code>{`{
+  "success": true,
+  "message": "Magic link has been sent to your email...",
+  "email": "your@email.com"
+}`}</code></pre>
+					</div>
+				</section>
+
+				<!-- Code Examples -->
+				<section>
+					<h2 class="text-2xl font-semibold text-gray-800 mb-4">Code Examples</h2>
+
+					<!-- JavaScript -->
+					<div class="mb-6">
+						<h3 class="text-lg font-semibold text-gray-700 mb-2">JavaScript</h3>
+						<pre class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"><code>{`const apiKey = 'your_api_key';
+const domain = 'shopify.com';
+const logoUrl = \`https://logo.alisait.com/\${domain}?key=\${apiKey}&format=png&size=256\`;
+
+// Use in img tag
+const img = document.createElement('img');
+img.src = logoUrl;
+img.alt = 'Shopify logo';
+document.body.appendChild(img);
+
+// Or fetch directly
+fetch(logoUrl)
+  .then(response => response.blob())
+  .then(blob => {
+    const url = URL.createObjectURL(blob);
+    // Use the logo
+  });`}</code></pre>
+					</div>
+
+					<!-- Python -->
+					<div class="mb-6">
+						<h3 class="text-lg font-semibold text-gray-700 mb-2">Python</h3>
+						<pre class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"><code>{`import requests
+
+api_key = 'your_api_key'
+domain = 'shopify.com'
+logo_url = f'https://logo.alisait.com/{domain}?key={api_key}&format=png&size=256'
+
+# Download logo
+response = requests.get(logo_url)
+if response.status_code == 200:
+    with open('logo.png', 'wb') as f:
+        f.write(response.content)`}</code></pre>
+					</div>
+
+					<!-- cURL -->
+					<div>
+						<h3 class="text-lg font-semibold text-gray-700 mb-2">cURL</h3>
+						<pre class="bg-gray-100 p-4 rounded text-sm overflow-x-auto"><code># Get logo by domain
+curl "https://logo.alisait.com/shopify.com?key=your_api_key&format=png&size=256" \
+  -o logo.png
+
+# Get logo by company name
+curl "https://logo.alisait.com/name/shopify?key=your_api_key&format=svg" \
+  -o logo.svg
+
+# Get statistics
+curl "https://logo.alisait.com/api/stats?key=your_api_key&days=30" \
+  -H "Content-Type: application/json"</code></pre>
+					</div>
+				</section>
+
+				<!-- Error Handling -->
+				<section>
+					<h2 class="text-2xl font-semibold text-gray-800 mb-4">Error Handling</h2>
+					<div class="space-y-3">
+						<div class="bg-red-50 border-l-4 border-red-500 p-4">
+							<h4 class="font-semibold text-red-800 mb-1">401 Unauthorized</h4>
+							<p class="text-red-700 text-sm">Invalid or missing API key</p>
+							<pre class="mt-2 text-xs"><code>{`{"error": "Invalid API key"}`}</code></pre>
+						</div>
+						<div class="bg-yellow-50 border-l-4 border-yellow-500 p-4">
+							<h4 class="font-semibold text-yellow-800 mb-1">429 Too Many Requests</h4>
+							<p class="text-yellow-700 text-sm">Rate limit exceeded</p>
+							<pre class="mt-2 text-xs"><code>{`{"error": "Rate limit exceeded..."}`}</code></pre>
+						</div>
+						<div class="bg-red-50 border-l-4 border-red-500 p-4">
+							<h4 class="font-semibold text-red-800 mb-1">404 Not Found</h4>
+							<p class="text-red-700 text-sm">Logo not found for the given domain/name</p>
+							<pre class="mt-2 text-xs"><code>{`{"error": "Failed to fetch logo"}`}</code></pre>
+						</div>
+					</div>
+				</section>
+
+				<!-- Rate Limits -->
+				<section>
+					<h2 class="text-2xl font-semibold text-gray-800 mb-4">Rate Limits</h2>
+					<p class="text-gray-700 mb-4">
+						API requests are limited to <strong>1000 requests per hour</strong> per API key.
+					</p>
+					<p class="text-gray-700">
+						When the rate limit is exceeded, you'll receive a 429 status code with a 
+						<code class="bg-gray-100 px-1 rounded">Retry-After</code> header indicating when you can make requests again.
+					</p>
+				</section>
+			</div>
+		</div>
+	</body>
+</html>
+
