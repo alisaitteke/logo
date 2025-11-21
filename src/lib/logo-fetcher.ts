@@ -3,6 +3,7 @@
  */
 
 import { fetchLogoWithFailover, type EnhancedLogoResult, type LogoProviderOptions } from './providers';
+import { findDomainFromCompanyName } from './search/domain-finder';
 import {
 	storeLogoInR2,
 	getLogoFromR2,
@@ -116,13 +117,36 @@ export async function fetchLogo(options: FetchLogoOptions): Promise<FetchLogoRes
 
 	// Fetch from providers with failover
 	const startTime = Date.now();
-	const result = await fetchLogoWithFailover({
+	let result = await fetchLogoWithFailover({
 		domain,
 		companyName,
 		format,
 		...providerOptions,
 	});
 	const fetchDuration = Date.now() - startTime;
+
+	// If all providers failed and we have a company name (no domain), try to find domain via search
+	if (!result.success && !domain && companyName) {
+		console.log(`All providers failed. Attempting to find domain for company: ${companyName}`);
+		const foundDomain = await findDomainFromCompanyName(companyName);
+		
+		if (foundDomain) {
+			console.log(`Found domain via search: ${foundDomain}`);
+			
+			// Retry with found domain
+			const retryStartTime = Date.now();
+			result = await fetchLogoWithFailover({
+				domain: foundDomain,
+				companyName,
+				format,
+				...providerOptions,
+			});
+			
+			console.log(`Retry with domain ${foundDomain}: ${result.success ? 'success' : 'failed'}`);
+		} else {
+			console.log(`Could not find domain for company: ${companyName}`);
+		}
+	}
 
 	if (!result.success || !result.logoUrl) {
 		return {

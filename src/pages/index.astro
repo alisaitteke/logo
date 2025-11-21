@@ -13,27 +13,6 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 		<meta name="description" content="Get company logos instantly via simple API. Support for domain and company name lookups with format, size, and greyscale options." />
 	</head>
 	<body class="min-h-screen bg-gray-50 dark:bg-gray-900">
-		<!-- Navigation -->
-		<nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-			<div class="container mx-auto px-4 py-4 max-w-2xl">
-				<div class="flex items-center justify-between">
-					<div class="flex items-center space-x-8">
-						<a href="/" class="text-xl font-bold text-gray-900 dark:text-white">Logo CDN</a>
-						<div class="hidden md:flex space-x-4">
-							<a href="/" class="px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium">Home</a>
-							<a href="/docs" class="px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">Documentation</a>
-						</div>
-					</div>
-					<a
-						href="/docs"
-						class="bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
-					>
-						View Docs
-					</a>
-				</div>
-			</div>
-		</nav>
-
 		<!-- Main Content -->
 		<main class="container mx-auto px-4 py-8 max-w-2xl">
 			<header class="mb-8 text-center">
@@ -111,7 +90,7 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 							</p>
 							<p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
 								Click the link in the email to access your API key.
-							</p>
+			</p>
 							<p class="text-xs text-gray-400 dark:text-gray-500">
 								⚠️ Don't forget to check your spam folder if you don't see the email within a few minutes.
 							</p>
@@ -125,28 +104,13 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 					</div>
 				</div>
 
-				<!-- Quick Start Guide -->
-				<div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
-					<h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-3">Quick Start</h3>
-					<ol class="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
-						<li>Enter your email above to get your API key</li>
-						<li>Check your email and click the magic link</li>
-						<li>Copy your API key and start using it</li>
-					</ol>
-				</div>
 			</div>
 		</main>
 
-		<!-- Footer -->
-		<footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-16">
-			<div class="container mx-auto px-4 py-8 max-w-2xl">
-				<div class="text-center text-gray-600 dark:text-gray-400">
-					<p>&copy; 2025 Logo CDN. Built with Astro and Cloudflare Workers.</p>
-				</div>
-			</div>
-		</footer>
-
 		<script>
+			// Debounce timer
+			let debounceTimer: number | null = null;
+
 			// Update preview and examples
 			(window as any).updatePreview = function() {
 				const searchInput = document.getElementById('logo-search') as HTMLInputElement;
@@ -278,7 +242,19 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 
 				if (logoSearch) {
 					logoSearch.addEventListener('input', () => {
-						(window as any).updatePreview();
+						// Show loader immediately
+						const previewLoader = document.getElementById('preview-loader');
+						if (previewLoader) previewLoader.classList.remove('hidden');
+						
+						// Clear existing timer
+						if (debounceTimer) {
+							clearTimeout(debounceTimer);
+						}
+						
+						// Set new timer - wait 2 seconds before updating
+						debounceTimer = setTimeout(() => {
+							(window as any).updatePreview();
+						}, 2000) as any;
 					});
 				}
 

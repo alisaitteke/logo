@@ -5,6 +5,7 @@
 
 import { fetchLogoFromGetLogo, type LogoProviderResult, type LogoProviderOptions } from './getlogo';
 import { fetchLogoFromLogoDev } from './logodev';
+import { fetchLogoFromGoogleFavicon } from './google-favicon';
 import { createFetchLog, logProviderOperation } from '../logging/logger';
 
 export type { LogoProviderResult, LogoProviderOptions };
@@ -109,6 +110,40 @@ export async function fetchLogoWithFailover(
 					error: errorMessage,
 				})
 			);
+		}
+	}
+
+	// If no success yet and we have a domain, try Google Favicon as last resort
+	if (successfulResults.length === 0 && options.domain) {
+		const startTime = Date.now();
+		try {
+			const result = await fetchLogoFromGoogleFavicon({
+				domain: options.domain,
+				size: options.size || 256,
+			});
+			const duration = Date.now() - startTime;
+
+			logProviderOperation(
+				createFetchLog('google-favicon', result.success, {
+					domain: options.domain,
+					duration,
+					error: result.error,
+				})
+			);
+
+			if (result.success && result.logoData) {
+				const enhancedResult: EnhancedLogoResult = {
+					success: true,
+					logoUrl: `https://www.google.com/s2/favicons?domain=${options.domain}&sz=${options.size || 256}`,
+					provider: 'google-favicon',
+					duration,
+					logoData: result.logoData,
+					fileSize: result.logoData.byteLength,
+				};
+				successfulResults.push(enhancedResult);
+			}
+		} catch (error) {
+			console.error('Google Favicon failed:', error);
 		}
 	}
 

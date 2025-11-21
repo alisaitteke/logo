@@ -80,7 +80,9 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
 		const query = decodeURIComponent(searchParam);
 		
 		// Determine if it's a domain or company name
-		const isDomain = query.includes('.');
+		// Domain must have a dot AND a valid TLD (at least 2 chars after last dot)
+		const parts = query.split('.');
+		const isDomain = parts.length >= 2 && parts[parts.length - 1].length >= 2;
 		
 		if (isDomain) {
 			const sanitizedDomain = sanitizeDomain(query);
