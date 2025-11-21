@@ -85,12 +85,17 @@ export async function fetchLogoFromLogoDev(
 		// Check if response is actually an image
 		const contentType = response.headers.get('content-type');
 		if (!contentType || !contentType.startsWith('image/')) {
+			// Consume body to prevent stalled response warning
+			await response.arrayBuffer().catch(() => {});
 			return {
 				success: false,
 				error: 'Response is not an image',
 				provider: 'logo.dev',
 			};
 		}
+
+		// Consume body to prevent stalled response warning
+		await response.arrayBuffer().catch(() => {});
 
 		return {
 			success: true,

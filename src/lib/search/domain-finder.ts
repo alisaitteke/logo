@@ -14,62 +14,71 @@ export async function findDomainViaDuckDuckGo(companyName: string): Promise<stri
 	try {
 		console.log(`[DomainFinder] Starting DuckDuckGo search for: "${companyName}"`);
 		
-		const duckduck = new DuckDuck();
-		
-		console.log('[DomainFinder] DuckDuck instance created, calling text()...');
-		const results = await duckduck.text(companyName);
-		console.log('[DomainFinder] DuckDuck text() completed');
+		// Use timeout to prevent hanging
+		const timeoutPromise = new Promise<null>((resolve) => {
+			setTimeout(() => {
+				console.log('[DomainFinder] DuckDuckGo search timeout (10s)');
+				resolve(null);
+			}, 10000);
+		});
 
-		if (!results) {
-			console.log('[DomainFinder] DuckDuckGo returned no results (null/undefined)');
-			return null;
-		}
-
-		// Convert to string if it's not already
-		const resultsText = typeof results === 'string' ? results : JSON.stringify(results);
-		console.log(`[DomainFinder] Results type: ${typeof results}, length: ${resultsText.length}`);
-		console.log(`[DomainFinder] Results preview: ${resultsText.substring(0, 300)}...`);
-
-		// Parse results to find URLs
-		const urlRegex = /https?:\/\/[^\s\)"\]]+/g;
-		const urls = resultsText.match(urlRegex);
-
-		if (!urls || urls.length === 0) {
-			console.log('[DomainFinder] No URLs found in DuckDuckGo results');
-			console.log(`[DomainFinder] Full results: ${resultsText}`);
-			return null;
-		}
-
-		console.log(`[DomainFinder] Found ${urls.length} URLs in results:`, urls.slice(0, 5));
-
-		// Try each URL to find a valid domain
-		for (const url of urls) {
-			const domain = extractDomain(url);
-			console.log(`[DomainFinder] Extracted domain from ${url}: ${domain}`);
+		const searchPromise = (async () => {
+			const duckduck = new DuckDuck();
 			
-			// Skip wikipedia, youtube, social media, etc.
-			if (domain && 
-				!domain.includes('wiki') && 
-				!domain.includes('youtube') &&
-				!domain.includes('facebook') &&
-				!domain.includes('twitter') &&
-				!domain.includes('instagram') &&
-				!domain.includes('linkedin')) {
-				console.log(`[DomainFinder] ✓ Found valid domain via DuckDuckGo: ${domain}`);
-				return domain;
-			} else {
-				console.log(`[DomainFinder] ✗ Skipped domain: ${domain} (filtered out)`);
-			}
-		}
+			console.log('[DomainFinder] DuckDuck instance created, calling text()...');
+			const results = await duckduck.text(companyName);
+			console.log('[DomainFinder] DuckDuck text() completed');
 
-		console.log('[DomainFinder] No valid domain found in DuckDuckGo results (all filtered)');
-		return null;
+			if (!results) {
+				console.log('[DomainFinder] DuckDuckGo returned no results (null/undefined)');
+				return null;
+			}
+
+			// Convert to string if it's not already
+			const resultsText = typeof results === 'string' ? results : JSON.stringify(results);
+			console.log(`[DomainFinder] Results type: ${typeof results}, length: ${resultsText.length}`);
+			console.log(`[DomainFinder] Results preview: ${resultsText.substring(0, 300)}...`);
+
+			// Parse results to find URLs
+			const urlRegex = /https?:\/\/[^\s\)"\]]+/g;
+			const urls = resultsText.match(urlRegex);
+
+			if (!urls || urls.length === 0) {
+				console.log('[DomainFinder] No URLs found in DuckDuckGo results');
+				return null;
+			}
+
+			console.log(`[DomainFinder] Found ${urls.length} URLs in results:`, urls.slice(0, 5));
+
+			// Try each URL to find a valid domain
+			for (const url of urls) {
+				const domain = extractDomain(url);
+				
+				// Skip wikipedia, youtube, social media, etc.
+				if (domain && 
+					!domain.includes('wiki') && 
+					!domain.includes('youtube') &&
+					!domain.includes('facebook') &&
+					!domain.includes('twitter') &&
+					!domain.includes('instagram') &&
+					!domain.includes('linkedin')) {
+					console.log(`[DomainFinder] ✓ Found valid domain via DuckDuckGo: ${domain}`);
+					return domain;
+				}
+			}
+
+			console.log('[DomainFinder] No valid domain found (all filtered)');
+			return null;
+		})();
+
+		// Race between search and timeout
+		const result = await Promise.race([searchPromise, timeoutPromise]);
+		return result;
 	} catch (error) {
-		console.error('[DomainFinder] DuckDuckGo search FAILED with error:', error);
-		console.error('[DomainFinder] Error details:', {
+		console.error('[DomainFinder] DuckDuckGo search FAILED:', error);
+		console.error('[DomainFinder] Error:', {
 			name: error instanceof Error ? error.name : 'Unknown',
 			message: error instanceof Error ? error.message : String(error),
-			stack: error instanceof Error ? error.stack : undefined,
 		});
 		return null;
 	}
