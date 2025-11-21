@@ -30,20 +30,33 @@ export interface StatisticsSummary {
  * Track a single request
  * @param apiKey - API key used for the request
  * @param statsKV - KV namespace for statistics
+ * @param apiKeysKV - KV namespace for API keys (to update total count)
  * @param timestamp - Optional timestamp (defaults to now)
  */
 export async function trackRequest(
 	apiKey: string,
 	statsKV: KVNamespace,
+	apiKeysKV?: KVNamespace,
 	timestamp?: Date
 ): Promise<void> {
 	const date = timestamp ? timestamp.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
 	const statsKey = `stats:${apiKey}:${date}`;
 
 	try {
+		// Update daily stats
 		const currentCount = await statsKV.get(statsKey);
 		const newCount = (parseInt(currentCount || '0', 10) + 1).toString();
 		await statsKV.put(statsKey, newCount);
+
+		// Update API key's total request count
+		if (apiKeysKV) {
+			const keyData = await apiKeysKV.get(`key:${apiKey}`);
+			if (keyData) {
+				const parsed = JSON.parse(keyData);
+				parsed.requestCount = (parsed.requestCount || 0) + 1;
+				await apiKeysKV.put(`key:${apiKey}`, JSON.stringify(parsed));
+			}
+		}
 	} catch (error) {
 		console.error('Failed to track request:', error);
 	}

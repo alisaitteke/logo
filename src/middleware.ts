@@ -188,7 +188,11 @@ async function handleDomainEndpoint(context: any, domain: string) {
 
 		// Track request statistics
 		if (validation.apiKey) {
-			await trackRequest(validation.apiKey, context.locals.runtime.env.STATS);
+			await trackRequest(
+				validation.apiKey, 
+				context.locals.runtime.env.STATS,
+				context.locals.runtime.env.API_KEYS
+			);
 		}
 
 		// Fetch logo
@@ -270,7 +274,11 @@ async function handleNameEndpoint(context: any, companyName: string) {
 
 		// Track request statistics
 		if (validation.apiKey) {
-			await trackRequest(validation.apiKey, context.locals.runtime.env.STATS);
+			await trackRequest(
+				validation.apiKey, 
+				context.locals.runtime.env.STATS,
+				context.locals.runtime.env.API_KEYS
+			);
 		}
 
 		// Fetch logo
@@ -495,11 +503,11 @@ async function handleMagicLinkAuthEndpoint(context: any, token: string) {
 		);
 
 		if (!validation.valid || !validation.tokenData) {
-			// Invalid token - redirect to dashboard with error
+			// Invalid token - redirect to home with error
 			return new Response(null, {
 				status: 302,
 				headers: {
-					'Location': '/dashboard?error=invalid_token',
+					'Location': '/?error=invalid_token',
 				},
 			});
 		}
@@ -516,11 +524,11 @@ async function handleMagicLinkAuthEndpoint(context: any, token: string) {
 		const secureFlag = isProduction ? '; Secure' : '';
 		const cookieValue = `magic_link_token=${token}; expires=${expiresDate.toUTCString()}; path=/; SameSite=Lax${secureFlag}`;
 		
-		// Redirect to dashboard with cookie set
+		// Redirect to home page with cookie set
 		return new Response(null, {
 			status: 302,
 			headers: { 
-				'Location': '/dashboard',
+				'Location': '/',
 				'Set-Cookie': cookieValue,
 			},
 		});
@@ -529,7 +537,7 @@ async function handleMagicLinkAuthEndpoint(context: any, token: string) {
 		return new Response(null, {
 			status: 302,
 			headers: {
-				'Location': '/dashboard?error=server_error',
+				'Location': '/?error=server_error',
 			},
 		});
 	}

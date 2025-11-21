@@ -14,130 +14,314 @@
 	<body class="min-h-screen bg-gray-50 dark:bg-gray-900">
 		<!-- Navigation -->
 		<nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-			<div class="container mx-auto px-4 py-4 max-w-7xl">
+			<div class="container mx-auto px-4 py-4 max-w-2xl">
 				<div class="flex items-center justify-between">
 					<div class="flex items-center space-x-8">
 						<a href="/" class="text-xl font-bold text-gray-900 dark:text-white">Logo CDN</a>
 						<div class="hidden md:flex space-x-4">
 							<a href="/" class="px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium">Home</a>
-							<a href="/dashboard" class="px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">Dashboard</a>
 							<a href="/docs" class="px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">Documentation</a>
 						</div>
 					</div>
 					<a
-						href="/dashboard"
-						class="bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
-					>
-						Get Started
-					</a>
-				</div>
-			</div>
-		</nav>
-
-		<!-- Hero Section -->
-		<main class="container mx-auto px-4 py-16 max-w-7xl">
-			<div class="text-center mb-16 max-w-4xl mx-auto">
-				<h1 class="text-5xl font-bold text-gray-900 dark:text-white mb-4">
-					Simple Logo Delivery Service
-				</h1>
-				<p class="text-xl text-gray-600 dark:text-gray-300 mb-8">
-					Get company logos instantly via a simple API. Support for domain and company name lookups with format, size, and greyscale options.
-				</p>
-				<div class="flex justify-center space-x-4">
-					<a
-						href="/dashboard"
-						class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors font-medium"
-					>
-						Get API Key
-					</a>
-					<a
 						href="/docs"
-						class="bg-gray-200 text-gray-800 px-6 py-3 rounded-md hover:bg-gray-300 transition-colors font-medium"
+						class="bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
 					>
 						View Docs
 					</a>
 				</div>
 			</div>
+		</nav>
 
-			<!-- Features -->
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 max-w-6xl mx-auto">
-				<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-					<div class="text-3xl mb-4">🚀</div>
-					<h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2">Fast & Simple</h3>
-					<p class="text-gray-600 dark:text-gray-300">
-						Get logos instantly with a simple URL. No complex setup required.
-					</p>
-				</div>
-				<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-					<div class="text-3xl mb-4">🎨</div>
-					<h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2">Multiple Formats</h3>
-					<p class="text-gray-600 dark:text-gray-300">
-						Support for PNG, SVG, and WebP formats with size and greyscale options.
-					</p>
-				</div>
-				<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-					<div class="text-3xl mb-4">⚡</div>
-					<h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2">Global CDN</h3>
-					<p class="text-gray-600 dark:text-gray-300">
-						Powered by Cloudflare's global network for fast delivery worldwide.
-					</p>
+		<!-- Main Content -->
+		<main class="container mx-auto px-4 py-8 max-w-2xl">
+			<header class="mb-8 text-center">
+				<h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Logo CDN</h1>
+				<p class="text-gray-600 dark:text-gray-300" id="subtitle">Simple logo delivery service</p>
+			</header>
+
+			<!-- Loading State -->
+			<div id="loading" class="text-center py-8">
+				<div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+				<p class="mt-2 text-gray-600 dark:text-gray-400">Loading...</p>
+			</div>
+
+			<!-- Authenticated View (API Keys) -->
+			<div id="authenticated-view" class="hidden">
+				<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+					<div class="flex justify-between items-center mb-4">
+						<h2 class="text-2xl font-semibold text-gray-800 dark:text-white">Your API Key</h2>
+						<button id="logout-btn" class="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">Logout</button>
+					</div>
+					<p class="text-gray-600 dark:text-gray-300 mb-4" id="user-email"></p>
+					<div id="api-keys-list" class="space-y-4"></div>
 				</div>
 			</div>
 
-			<!-- Quick Start -->
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 mb-16 max-w-4xl mx-auto">
-				<h2 class="text-2xl font-semibold text-gray-800 dark:text-white mb-4">Quick Start</h2>
-				<div class="space-y-4">
-					<div>
-						<h3 class="font-semibold text-gray-700 dark:text-gray-200 mb-2">1. Get Your API Key</h3>
-						<p class="text-gray-600 dark:text-gray-300 mb-3">
-							Visit the <a href="/dashboard" class="text-blue-600 dark:text-blue-400 hover:underline">Dashboard</a> and enter your email to receive a magic link with your API key.
-						</p>
+			<!-- Unauthenticated View (Send Magic Link) -->
+			<div id="unauthenticated-view" class="hidden">
+				<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+					<h2 class="text-2xl font-semibold text-gray-800 dark:text-white mb-4">Get Your API Key</h2>
+					
+					<!-- Form -->
+					<div id="magic-link-form-container">
+						<p class="text-gray-600 dark:text-gray-300 mb-4">Enter your email to receive a magic link with your API key</p>
+						<form id="request-key-form" class="space-y-4">
+							<div>
+								<label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+									Email Address
+								</label>
+								<input
+									type="email"
+									id="email"
+									name="email"
+									required
+									class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+									placeholder="your@email.com"
+								/>
+							</div>
+							<button
+								type="submit"
+								id="submit-btn"
+								class="w-full bg-blue-600 dark:bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center justify-center"
+							>
+								<span id="submit-text">Send Magic Link</span>
+								<svg id="submit-loader" class="hidden animate-spin ml-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+								</svg>
+							</button>
+						</form>
+						<div id="request-key-message" class="mt-3 text-sm"></div>
 					</div>
-					<div>
-						<h3 class="font-semibold text-gray-700 dark:text-gray-200 mb-2">2. Use in Your Code</h3>
-						<pre class="bg-gray-100 dark:bg-gray-900 p-4 rounded text-sm overflow-x-auto"><code class="text-gray-800 dark:text-gray-200">&lt;img src="https://logo.alisait.com/shopify.com?key=your_api_key&format=png&size=256" alt="Shopify logo" /&gt;</code></pre>
-					</div>
-					<div>
-						<h3 class="font-semibold text-gray-700 dark:text-gray-200 mb-2">3. Or by Company Name</h3>
-						<pre class="bg-gray-100 dark:bg-gray-900 p-4 rounded text-sm overflow-x-auto"><code class="text-gray-800 dark:text-gray-200">&lt;img src="https://logo.alisait.com/name/shopify?key=your_api_key&format=svg" alt="Shopify logo" /&gt;</code></pre>
+
+					<!-- Success Message -->
+					<div id="success-message-container" class="hidden">
+						<div class="text-center py-8">
+							<div class="mb-4">
+								<svg class="mx-auto h-16 w-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+								</svg>
+							</div>
+							<h3 class="text-2xl font-semibold text-gray-800 dark:text-white mb-2">Check Your Email!</h3>
+							<p class="text-gray-600 dark:text-gray-300 mb-4">
+								We've sent a magic link to <strong id="sent-email" class="text-gray-900 dark:text-white"></strong>
+							</p>
+							<p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+								Click the link in the email to access your API key.
+							</p>
+							<p class="text-xs text-gray-400 dark:text-gray-500">
+								⚠️ Don't forget to check your spam folder if you don't see the email within a few minutes.
+							</p>
+							<button
+								onclick="document.getElementById('success-message-container').classList.add('hidden'); document.getElementById('magic-link-form-container').classList.remove('hidden');"
+								class="mt-6 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+							>
+								Send to a different email
+							</button>
+						</div>
 					</div>
 				</div>
-			</div>
 
-			<!-- Example Usage -->
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 max-w-4xl mx-auto">
-				<h2 class="text-2xl font-semibold text-gray-800 dark:text-white mb-4">Example Usage</h2>
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-					<div>
-						<h3 class="font-semibold text-gray-700 dark:text-gray-200 mb-2">Domain-based</h3>
-						<pre class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-xs overflow-x-auto"><code class="text-gray-800 dark:text-gray-200">https://logo.alisait.com/
-  shopify.com
-  ?key=your_api_key
-  &format=png
-  &size=256
-  &greyscale=false</code></pre>
-					</div>
-					<div>
-						<h3 class="font-semibold text-gray-700 dark:text-gray-200 mb-2">Name-based</h3>
-						<pre class="bg-gray-100 dark:bg-gray-900 p-3 rounded text-xs overflow-x-auto"><code class="text-gray-800 dark:text-gray-200">https://logo.alisait.com/
-  name/shopify
-  ?key=your_api_key
-  &format=svg
-  &size=128</code></pre>
-					</div>
+				<!-- Quick Start Guide -->
+				<div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+					<h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-3">Quick Start</h3>
+					<ol class="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300">
+						<li>Enter your email above to get your API key</li>
+						<li>Check your email and click the magic link</li>
+						<li>Copy your API key and start using it</li>
+					</ol>
 				</div>
 			</div>
 		</main>
 
 		<!-- Footer -->
 		<footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-16">
-			<div class="container mx-auto px-4 py-8 max-w-7xl">
+			<div class="container mx-auto px-4 py-8 max-w-2xl">
 				<div class="text-center text-gray-600 dark:text-gray-400">
 					<p>&copy; 2025 Logo CDN. Built with Astro and Cloudflare Workers.</p>
 				</div>
 			</div>
 		</footer>
+
+		<script>
+			// Check authentication status on page load
+			async function checkAuth() {
+				const loading = document.getElementById('loading');
+				const authenticatedView = document.getElementById('authenticated-view');
+				const unauthenticatedView = document.getElementById('unauthenticated-view');
+				const subtitle = document.getElementById('subtitle');
+
+				try {
+					const response = await fetch('/api/dashboard-data', {
+						credentials: 'include'
+					});
+					const data = await response.json();
+
+					if (loading) loading.classList.add('hidden');
+
+					if (data.authenticated && data.apiKeys) {
+						// Show authenticated view
+						if (authenticatedView) authenticatedView.classList.remove('hidden');
+						if (unauthenticatedView) unauthenticatedView.classList.add('hidden');
+						if (subtitle) subtitle.textContent = `Welcome back!`;
+
+						// Set email
+						const emailEl = document.getElementById('user-email');
+						if (emailEl) emailEl.textContent = `Email: ${data.email}`;
+
+						// Render API keys
+						renderApiKeys(data.apiKeys, data.statistics);
+					} else {
+						// Show unauthenticated view
+						if (authenticatedView) authenticatedView.classList.add('hidden');
+						if (unauthenticatedView) unauthenticatedView.classList.remove('hidden');
+					}
+				} catch (error) {
+					console.error('Auth check error:', error);
+					if (loading) loading.classList.add('hidden');
+					if (authenticatedView) authenticatedView.classList.add('hidden');
+					if (unauthenticatedView) unauthenticatedView.classList.remove('hidden');
+				}
+			}
+
+			// Render API keys
+			function renderApiKeys(apiKeys: any[], statistics: Record<string, any>) {
+				const apiKeysList = document.getElementById('api-keys-list');
+				if (!apiKeysList) return;
+
+				apiKeysList.innerHTML = apiKeys.map((keyData) => {
+					const stats = statistics[keyData.key] || {};
+					const createdAt = new Date(keyData.createdAt).toLocaleDateString('tr-TR');
+					const lastUsed = keyData.lastUsed ? new Date(keyData.lastUsed).toLocaleDateString('tr-TR') : 'Never';
+					
+					return `
+						<div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+							<div class="mb-3">
+								<h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">API Key</h3>
+								<div class="bg-white dark:bg-gray-800 p-3 rounded-md font-mono text-sm break-all border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100">
+									${keyData.key}
+								</div>
+								<button 
+									onclick="copyToClipboard('${keyData.key}')" 
+									class="mt-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+								>
+									📋 Copy to Clipboard
+								</button>
+							</div>
+							<div class="grid grid-cols-2 gap-4">
+								<div>
+									<p class="text-sm text-gray-600 dark:text-gray-400">Created</p>
+									<p class="font-medium text-gray-900 dark:text-white">${createdAt}</p>
+								</div>
+								<div>
+									<p class="text-sm text-gray-600 dark:text-gray-400">Last Used</p>
+									<p class="font-medium text-gray-900 dark:text-white">${lastUsed}</p>
+								</div>
+								<div>
+									<p class="text-sm text-gray-600 dark:text-gray-400">Today's Requests</p>
+									<p class="font-medium text-gray-900 dark:text-white">${stats.todayRequests || 0}</p>
+								</div>
+								<div>
+									<p class="text-sm text-gray-600 dark:text-gray-400">Total Requests</p>
+									<p class="font-medium text-gray-900 dark:text-white">${stats.totalRequests || 0}</p>
+								</div>
+							</div>
+						</div>
+					`;
+				}).join('');
+
+				// Add usage example
+				if (apiKeys.length > 0) {
+					apiKeysList.innerHTML += `
+						<div class="mt-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+							<h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-3">Usage Example</h3>
+							<pre class="bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-4 rounded overflow-x-auto text-sm"><code>&lt;img src="https://logo.alisait.com/shopify.com?key=${apiKeys[0]?.key || 'YOUR_API_KEY'}&format=png" alt="Shopify logo" /&gt;</code></pre>
+						</div>
+					`;
+				}
+			}
+
+			// Copy to clipboard
+			function copyToClipboard(text: string) {
+				navigator.clipboard.writeText(text).then(() => {
+					alert('API key copied to clipboard!');
+				});
+			}
+
+			// Logout handler
+			document.getElementById('logout-btn')?.addEventListener('click', () => {
+				// Clear cookie
+				document.cookie = 'magic_link_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+				// Reload page
+				window.location.reload();
+			});
+
+			// Send Magic Link Form Handler
+			document.getElementById('request-key-form')?.addEventListener('submit', async (e) => {
+				e.preventDefault();
+				const form = e.target as HTMLFormElement;
+				const emailInput = form.querySelector('#email') as HTMLInputElement;
+				const messageDiv = document.getElementById('request-key-message');
+				const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+				const submitText = document.getElementById('submit-text');
+				const submitLoader = document.getElementById('submit-loader');
+				const email = emailInput.value.trim();
+
+				if (!email) {
+					if (messageDiv) {
+						messageDiv.textContent = 'Please enter an email address';
+						messageDiv.className = 'mt-3 text-sm text-red-600 dark:text-red-400';
+					}
+					return;
+				}
+
+				// Show loader
+				if (submitBtn) submitBtn.disabled = true;
+				if (submitText) submitText.textContent = 'Sending...';
+				if (submitLoader) submitLoader.classList.remove('hidden');
+				if (messageDiv) messageDiv.textContent = '';
+
+				try {
+					const response = await fetch('/api/request-key', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ email }),
+					});
+
+					const data = await response.json();
+
+					if (response.ok) {
+						// Hide form, show success message
+						const formContainer = document.getElementById('magic-link-form-container');
+						const successContainer = document.getElementById('success-message-container');
+						const sentEmailEl = document.getElementById('sent-email');
+						
+						if (formContainer) formContainer.classList.add('hidden');
+						if (successContainer) successContainer.classList.remove('hidden');
+						if (sentEmailEl) sentEmailEl.textContent = email;
+						
+						form.reset();
+					} else if (messageDiv) {
+						messageDiv.textContent = data.error || 'Failed to send magic link';
+						messageDiv.className = 'mt-3 text-sm text-red-600 dark:text-red-400';
+					}
+				} catch (error) {
+					if (messageDiv) {
+						messageDiv.textContent = 'An error occurred. Please try again.';
+						messageDiv.className = 'mt-3 text-sm text-red-600 dark:text-red-400';
+					}
+				} finally {
+					// Hide loader
+					if (submitBtn) submitBtn.disabled = false;
+					if (submitText) submitText.textContent = 'Send Magic Link';
+					if (submitLoader) submitLoader.classList.add('hidden');
+				}
+			});
+
+			// Check auth on page load
+			checkAuth();
+		</script>
 	</body>
 </html>
 
