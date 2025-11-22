@@ -31,7 +31,7 @@
 	},
 	"analytics_engine_datasets": [
 		{
-			"binding": "ANALYTICS",
+			"binding": "ANALYTICS_ENGINE",
 			"dataset": "logo-logs"
 		}
 	],
