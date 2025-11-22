@@ -15,6 +15,8 @@ interface Env {
 	MAGIC_LINKS: KVNamespace;
 	GETLOGO_API_URL?: string;
 	LOGO_DEV_API_URL?: string;
+	GETLOGO_API_KEY?: string;
+	LOGO_DEV_API_KEY?: string;
 }
 
 // Create Hono app
@@ -100,6 +102,8 @@ app.get('/:domain', validateApiKey, async (c) => {
 			r2Bucket: c.env.LOGOS,
 			kvNamespace: c.env.API_KEYS,
 			useCache: true,
+			getlogoApiKey: c.env.GETLOGO_API_KEY,
+			logoDevApiKey: c.env.LOGO_DEV_API_KEY,
 		});
 
 		if (!result.success || !result.logo) {
@@ -148,6 +152,8 @@ app.get('/name/:companyName', validateApiKey, async (c) => {
 			r2Bucket: c.env.LOGOS,
 			kvNamespace: c.env.API_KEYS,
 			useCache: true,
+			getlogoApiKey: c.env.GETLOGO_API_KEY,
+			logoDevApiKey: c.env.LOGO_DEV_API_KEY,
 		});
 
 		if (!result.success || !result.logo) {

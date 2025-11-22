@@ -41,6 +41,8 @@ export interface FetchLogoOptions extends LogoProviderOptions {
 		apiToken: string;
 		baseUrl?: string;
 	};
+	getlogoApiKey?: string; // API key for getlogo.dev
+	logoDevApiKey?: string; // API key for logo.dev
 }
 
 export interface FetchLogoResult {
@@ -68,6 +70,8 @@ export async function fetchLogo(options: FetchLogoOptions): Promise<FetchLogoRes
 		companyName,
 		format = 'png',
 		size,
+		getlogoApiKey,
+		logoDevApiKey,
 		...providerOptions
 	} = options;
 
@@ -117,12 +121,16 @@ export async function fetchLogo(options: FetchLogoOptions): Promise<FetchLogoRes
 
 	// Fetch from providers with failover
 	const startTime = Date.now();
-	let result = await fetchLogoWithFailover({
-		domain,
-		companyName,
-		format,
-		...providerOptions,
-	});
+	let result = await fetchLogoWithFailover(
+		{
+			domain,
+			companyName,
+			format,
+			...providerOptions,
+		},
+		getlogoApiKey,
+		logoDevApiKey
+	);
 	const fetchDuration = Date.now() - startTime;
 
 	// If all providers failed and we have a company name (no domain), try to find domain via search
@@ -135,12 +143,16 @@ export async function fetchLogo(options: FetchLogoOptions): Promise<FetchLogoRes
 			
 			// Retry with found domain
 			const retryStartTime = Date.now();
-			result = await fetchLogoWithFailover({
-				domain: foundDomain,
-				companyName,
-				format,
-				...providerOptions,
-			});
+			result = await fetchLogoWithFailover(
+				{
+					domain: foundDomain,
+					companyName,
+					format,
+					...providerOptions,
+				},
+				getlogoApiKey,
+				logoDevApiKey
+			);
 			
 			console.log(`Retry with domain ${foundDomain}: ${result.success ? 'success' : 'failed'}`);
 		} else {

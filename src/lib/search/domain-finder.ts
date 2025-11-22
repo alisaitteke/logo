@@ -3,8 +3,6 @@
  * Finds company website domain from company name
  */
 
-import { DuckDuck } from 'duckduckjs';
-
 /**
  * Find domain using DuckDuckGo Instant Answer API
  * @param companyName - Company name to search
@@ -12,74 +10,92 @@ import { DuckDuck } from 'duckduckjs';
  */
 export async function findDomainViaDuckDuckGo(companyName: string): Promise<string | null> {
 	try {
-		console.log(`[DomainFinder] Starting DuckDuckGo search for: "${companyName}"`);
+		console.log(`[DomainFinder] Starting DuckDuckGo HTML search for: "${companyName}"`);
 		
-		// Use timeout to prevent hanging
-		const timeoutPromise = new Promise<null>((resolve) => {
-			setTimeout(() => {
-				console.log('[DomainFinder] DuckDuckGo search timeout (10s)');
-				resolve(null);
-			}, 10000);
+		// DuckDuckGo Lite HTML (simpler, works better in Workers)
+		const query = encodeURIComponent(companyName);
+		const url = `https://lite.duckduckgo.com/lite/?q=${query}`;
+
+		const response = await fetch(url, {
+			headers: {
+				'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+			},
 		});
 
-		const searchPromise = (async () => {
-			const duckduck = new DuckDuck();
+		if (!response.ok) {
+			console.log(`[DomainFinder] DuckDuckGo returned ${response.status}`);
+			await response.arrayBuffer().catch(() => {}); // Consume body
+			return null;
+		}
+
+		const html = await response.text();
+		console.log(`[DomainFinder] Got HTML response, length: ${html.length}`);
+
+		// Extract URLs from HTML
+		// DuckDuckGo Lite format: href="//duckduckgo.com/l/?uddg=ENCODED_URL"
+		const hrefRegex = /href="([^"]+)"/g;
+		const matches = [...html.matchAll(hrefRegex)];
+		
+		console.log(`[DomainFinder] Found ${matches.length} href attributes`);
+
+		const foundDomains: string[] = [];
+		
+		for (const match of matches) {
+			let href = match[1];
 			
-			console.log('[DomainFinder] DuckDuck instance created, calling text()...');
-			const results = await duckduck.text(companyName);
-			console.log('[DomainFinder] DuckDuck text() completed');
-
-			if (!results) {
-				console.log('[DomainFinder] DuckDuckGo returned no results (null/undefined)');
-				return null;
+			// Skip internal navigation links
+			if (href.startsWith('/?') || href.startsWith('#')) {
+				continue;
 			}
 
-			// Convert to string if it's not already
-			const resultsText = typeof results === 'string' ? results : JSON.stringify(results);
-			console.log(`[DomainFinder] Results type: ${typeof results}, length: ${resultsText.length}`);
-			console.log(`[DomainFinder] Results preview: ${resultsText.substring(0, 300)}...`);
-
-			// Parse results to find URLs
-			const urlRegex = /https?:\/\/[^\s\)"\]]+/g;
-			const urls = resultsText.match(urlRegex);
-
-			if (!urls || urls.length === 0) {
-				console.log('[DomainFinder] No URLs found in DuckDuckGo results');
-				return null;
+			// DuckDuckGo uses redirect URLs: //duckduckgo.com/l/?uddg=ENCODED_URL
+			// We need to extract the ACTUAL destination URL, not duckduckgo.com
+			if (href.includes('/l/?uddg=') || href.includes('uddg=')) {
+				// Extract the actual URL from uddg parameter
+				const uddgMatch = href.match(/uddg=([^&]+)/);
+				if (uddgMatch) {
+					const encodedUrl = uddgMatch[1];
+					href = decodeURIComponent(encodedUrl);
+					console.log(`[DomainFinder] Decoded URL: ${href}`);
+				} else {
+					// Skip if we can't decode
+					continue;
+				}
+			} else if (href.includes('duckduckgo.com')) {
+				// Skip any other duckduckgo.com links
+				continue;
 			}
 
-			console.log(`[DomainFinder] Found ${urls.length} URLs in results:`, urls.slice(0, 5));
-
-			// Try each URL to find a valid domain
-			for (const url of urls) {
-				const domain = extractDomain(url);
+			// Try to extract domain
+			const domain = extractDomain(href);
+			
+			if (domain) {
+				foundDomains.push(domain);
+				console.log(`[DomainFinder] Found domain: ${domain}`);
 				
-				// Skip wikipedia, youtube, social media, etc.
-				if (domain && 
-					!domain.includes('wiki') && 
-					!domain.includes('youtube') &&
-					!domain.includes('facebook') &&
-					!domain.includes('twitter') &&
-					!domain.includes('instagram') &&
-					!domain.includes('linkedin')) {
-					console.log(`[DomainFinder] ✓ Found valid domain via DuckDuckGo: ${domain}`);
+				// Skip filtered domains
+				const isFiltered = domain.includes('wiki') || 
+					domain.includes('youtube') ||
+					domain.includes('facebook') ||
+					domain.includes('twitter') ||
+					domain.includes('instagram') ||
+					domain.includes('linkedin');
+				
+				if (!isFiltered) {
+					console.log(`[DomainFinder] ✓ VALID domain: ${domain}`);
 					return domain;
+				} else {
+					console.log(`[DomainFinder] ✗ Filtered: ${domain}`);
 				}
 			}
+		}
 
-			console.log('[DomainFinder] No valid domain found (all filtered)');
-			return null;
-		})();
+		console.log(`[DomainFinder] Total: ${foundDomains.length} domains, all filtered`);
 
-		// Race between search and timeout
-		const result = await Promise.race([searchPromise, timeoutPromise]);
-		return result;
+		console.log('[DomainFinder] No valid domain found in results');
+		return null;
 	} catch (error) {
-		console.error('[DomainFinder] DuckDuckGo search FAILED:', error);
-		console.error('[DomainFinder] Error:', {
-			name: error instanceof Error ? error.name : 'Unknown',
-			message: error instanceof Error ? error.message : String(error),
-		});
+		console.error('[DomainFinder] DuckDuckGo FAILED:', error);
 		return null;
 	}
 }

@@ -41,10 +41,14 @@ export const logoProviders: LogoProvider[] = [
  * Fetch logo from multiple providers with failover and logging
  * Tries providers in order until one succeeds
  * @param options - Logo fetch options
+ * @param getlogoApiKey - Optional API key for getlogo.dev
+ * @param logoDevApiKey - Optional API key for logo.dev
  * @returns Enhanced logo result with metadata
  */
 export async function fetchLogoWithFailover(
-	options: LogoProviderOptions
+	options: LogoProviderOptions,
+	getlogoApiKey?: string,
+	logoDevApiKey?: string
 ): Promise<EnhancedLogoResult> {
 	const errors: string[] = [];
 	const successfulResults: EnhancedLogoResult[] = [];
@@ -52,7 +56,17 @@ export async function fetchLogoWithFailover(
 	for (const provider of logoProviders) {
 		const startTime = Date.now();
 		try {
-			const result = await provider.fetch(options);
+			// Set the appropriate API key for each provider
+			const providerOptions: LogoProviderOptions = {
+				...options,
+				apiKey: provider.name === 'getlogo.dev' 
+					? (getlogoApiKey || options.apiKey)
+					: provider.name === 'logo.dev'
+					? (logoDevApiKey || options.apiKey)
+					: options.apiKey,
+			};
+			
+			const result = await provider.fetch(providerOptions);
 			const duration = Date.now() - startTime;
 
 			// Log the attempt
