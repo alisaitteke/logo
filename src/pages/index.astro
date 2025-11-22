@@ -41,9 +41,9 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 
 			<!-- Unauthenticated View (Send Magic Link) -->
 			<div id="unauthenticated-view" class="hidden">
-				<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+				<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8 ">
 					<h2 class="text-2xl font-semibold text-gray-800 dark:text-white mb-4">Get Your API Key</h2>
-					
+
 					<!-- Form -->
 					<div id="magic-link-form-container">
 						<p class="text-gray-600 dark:text-gray-300 mb-4">Enter your email to receive a magic link with your API key</p>
@@ -121,27 +121,27 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 				const previewLoader = document.getElementById('preview-loader');
 				const urlExample = document.getElementById('url-example');
 				const htmlExample = document.getElementById('html-example');
-				
+
 				const query = searchInput?.value.trim() || 'peta';
 				const size = sizeSelect?.value || '256';
 				const format = formatSelect?.value || 'png';
 				const greyscale = greyscaleCheck?.checked || false;
-				
+
 				// Get API key
 				const apiKeyEl = document.querySelector('#api-keys-list .font-mono');
 				const apiKey = apiKeyEl?.textContent?.trim() || '';
-				
+
 				const baseUrl = window.location.origin;
-				
+
 				// Build URL with parameters
 				let url = `${baseUrl}/get?s=${query}&key=${apiKey}`;
 				if (size !== '256') url += `&size=${size}`;
 				if (format !== 'png') url += `&format=${format}`;
 				if (greyscale) url += `&greyscale=true`;
-				
+
 				// Show loader
 				if (previewLoader) previewLoader.classList.remove('hidden');
-				
+
 				// Update preview
 				if (previewImg) {
 					previewImg.onload = () => {
@@ -153,12 +153,12 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 					previewImg.src = url;
 					previewImg.style.maxHeight = `${size}px`;
 				}
-				
+
 				// Update URL example
 				if (urlExample) {
 					urlExample.textContent = url;
 				}
-				
+
 				// Update HTML example
 				if (htmlExample) {
 					const htmlCode = `<img src="${url}" alt="Logo" />`;
@@ -173,7 +173,7 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 					button.textContent = '✓ Copied!';
 					button.classList.add('bg-green-600', 'dark:bg-green-500');
 					button.classList.remove('bg-blue-600', 'dark:bg-blue-500');
-					
+
 					setTimeout(() => {
 						button.textContent = originalText;
 						button.classList.remove('bg-green-600', 'dark:bg-green-500');
@@ -215,7 +215,7 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 
 						// Render API keys
 						renderApiKeys(data.apiKeys, data.statistics);
-						
+
 						// Setup event listeners after rendering
 						setTimeout(() => {
 							setupEventListeners();
@@ -245,12 +245,12 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 						// Show loader immediately
 						const previewLoader = document.getElementById('preview-loader');
 						if (previewLoader) previewLoader.classList.remove('hidden');
-						
+
 						// Clear existing timer
 						if (debounceTimer) {
 							clearTimeout(debounceTimer);
 						}
-						
+
 						// Set new timer - wait 600ms before updating
 						debounceTimer = setTimeout(() => {
 							(window as any).updatePreview();
@@ -280,7 +280,7 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 			// Switch between URL and HTML format
 			(window as any).switchFormat = function(format: string) {
 				currentFormat = format;
-				
+
 				const urlBtn = document.getElementById('format-url');
 				const htmlBtn = document.getElementById('format-html');
 				const codes = document.querySelectorAll('#examples-container code');
@@ -312,8 +312,8 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 			// Copy code to clipboard
 			(window as any).copyCode = function(button: HTMLButtonElement) {
 				const codeEl = button.previousElementSibling as HTMLElement;
-				const textToCopy = currentFormat === 'url' 
-					? codeEl.getAttribute('data-url') 
+				const textToCopy = currentFormat === 'url'
+					? codeEl.getAttribute('data-url')
 					: codeEl.getAttribute('data-html');
 
 				if (!textToCopy) return;
@@ -326,7 +326,7 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 					button.textContent = '✓ Copied!';
 					button.classList.add('bg-green-600', 'dark:bg-green-500');
 					button.classList.remove('bg-blue-600', 'dark:bg-blue-500');
-					
+
 					setTimeout(() => {
 						button.textContent = originalText;
 						button.classList.remove('bg-green-600', 'dark:bg-green-500');
@@ -339,18 +339,18 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 			(window as any).updateExamples = function(query: string) {
 				const codes = document.querySelectorAll('#examples-container code');
 				const images = document.querySelectorAll('#examples-container img');
-				
+
 				codes.forEach((code, index) => {
 					let urlAttr = code.getAttribute('data-url') || '';
 					let htmlAttr = code.getAttribute('data-html') || '';
-					
+
 					// Replace s= parameter value: s=peta or s=peta -> s=query
 					const newUrl = urlAttr.replace(/s=[^&]+/g, `s=${query}`);
 					const newHtml = htmlAttr.replace(/s=[^&"]+/g, `s=${query}`);
-					
+
 					code.setAttribute('data-url', newUrl);
 					code.setAttribute('data-html', newHtml);
-					
+
 					// Update displayed text based on current format
 					if (currentFormat === 'url') {
 						code.textContent = newUrl;
@@ -358,7 +358,7 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 						// Show HTML as text, not render it
 						code.textContent = newHtml.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
 					}
-					
+
 					// Update image src
 					const img = images[index] as HTMLImageElement;
 					if (img) {
@@ -376,7 +376,7 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 					const stats = statistics[keyData.key] || {};
 					const createdAt = new Date(keyData.createdAt).toLocaleDateString('tr-TR');
 					const lastUsed = keyData.lastUsed ? new Date(keyData.lastUsed).toLocaleDateString('tr-TR') : 'Never';
-					
+
 					return `
 						<div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
 							<div class="mb-3">
@@ -417,7 +417,7 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 				if (apiKeys.length > 0) {
 					const apiKey = apiKeys[0]?.key || 'YOUR_API_KEY';
 					const baseUrl = window.location.origin;
-					
+
 					apiKeysList.innerHTML += `
 						<div class="mt-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
 							<!-- Controls -->
@@ -534,7 +534,7 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 			// Switch between URL and HTML format
 			function switchFormat(format: string) {
 				currentFormat = format;
-				
+
 				const urlBtn = document.getElementById('format-url');
 				const htmlBtn = document.getElementById('format-html');
 				const codes = document.querySelectorAll('#examples-container code');
@@ -565,8 +565,8 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 			// Copy code to clipboard
 			function copyCode(button: HTMLButtonElement) {
 				const codeEl = button.previousElementSibling as HTMLElement;
-				const textToCopy = currentFormat === 'url' 
-					? codeEl.getAttribute('data-url') 
+				const textToCopy = currentFormat === 'url'
+					? codeEl.getAttribute('data-url')
 					: codeEl.getAttribute('data-html');
 
 				if (!textToCopy) return;
@@ -576,7 +576,7 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 					button.textContent = '✓ Copied!';
 					button.classList.add('bg-green-600', 'dark:bg-green-500');
 					button.classList.remove('bg-blue-600', 'dark:bg-blue-500');
-					
+
 					setTimeout(() => {
 						button.textContent = originalText;
 						button.classList.remove('bg-green-600', 'dark:bg-green-500');
@@ -633,11 +633,11 @@ const baseUrl = import.meta.env.BASE_URL || Astro.url.origin;
 						const formContainer = document.getElementById('magic-link-form-container');
 						const successContainer = document.getElementById('success-message-container');
 						const sentEmailEl = document.getElementById('sent-email');
-						
+
 						if (formContainer) formContainer.classList.add('hidden');
 						if (successContainer) successContainer.classList.remove('hidden');
 						if (sentEmailEl) sentEmailEl.textContent = email;
-						
+
 						form.reset();
 					} else if (messageDiv) {
 						messageDiv.textContent = data.error || 'Failed to send magic link';
