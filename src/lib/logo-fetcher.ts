@@ -43,6 +43,7 @@ export interface FetchLogoOptions extends LogoProviderOptions {
 	};
 	getlogoApiKey?: string; // API key for getlogo.dev
 	logoDevApiKey?: string; // API key for logo.dev
+	brandfetchApiKey?: string; // API key for brandfetch
 }
 
 export interface FetchLogoResult {
@@ -72,6 +73,7 @@ export async function fetchLogo(options: FetchLogoOptions): Promise<FetchLogoRes
 		size,
 		getlogoApiKey,
 		logoDevApiKey,
+		brandfetchApiKey,
 		...providerOptions
 	} = options;
 
@@ -129,7 +131,8 @@ export async function fetchLogo(options: FetchLogoOptions): Promise<FetchLogoRes
 			...providerOptions,
 		},
 		getlogoApiKey,
-		logoDevApiKey
+		logoDevApiKey,
+		brandfetchApiKey
 	);
 	const fetchDuration = Date.now() - startTime;
 
@@ -143,16 +146,17 @@ export async function fetchLogo(options: FetchLogoOptions): Promise<FetchLogoRes
 			
 			// Retry with found domain
 			const retryStartTime = Date.now();
-			result = await fetchLogoWithFailover(
-				{
-					domain: foundDomain,
-					companyName,
-					format,
-					...providerOptions,
-				},
-				getlogoApiKey,
-				logoDevApiKey
-			);
+		result = await fetchLogoWithFailover(
+			{
+				domain: foundDomain,
+				companyName,
+				format,
+				...providerOptions,
+			},
+			getlogoApiKey,
+			logoDevApiKey,
+			brandfetchApiKey
+		);
 			
 			console.log(`Retry with domain ${foundDomain}: ${result.success ? 'success' : 'failed'}`);
 		} else {
@@ -163,7 +167,7 @@ export async function fetchLogo(options: FetchLogoOptions): Promise<FetchLogoRes
 	if (!result.success || !result.logoUrl) {
 		return {
 			success: false,
-			error: result.error || 'Failed to fetch logo from all providers',
+			error: 'Logo not found', // Don't expose provider details
 		};
 	}
 
@@ -268,7 +272,7 @@ export async function fetchLogo(options: FetchLogoOptions): Promise<FetchLogoRes
 		}
 	}
 
-	// If storage failed but we have a URL, return it
+	// If storage failed but we have a URL, return it (without provider info)
 	return {
 		success: true,
 		logoUrl: result.logoUrl,

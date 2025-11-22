@@ -5,6 +5,7 @@
 
 import { fetchLogoFromGetLogo, type LogoProviderResult, type LogoProviderOptions } from './getlogo';
 import { fetchLogoFromLogoDev } from './logodev';
+import { fetchLogoFromBrandfetch } from './brandfetch';
 import { fetchLogoFromWikimedia } from './wikimedia';
 import { fetchLogoFromWikipedia } from './wikipedia';
 import { fetchLogoFromGoogleFavicon } from './google-favicon';
@@ -29,6 +30,10 @@ export interface EnhancedLogoResult extends LogoProviderResult {
  * List of available logo providers in priority order
  */
 export const logoProviders: LogoProvider[] = [
+	{
+		name: 'brandfetch',
+		fetch: fetchLogoFromBrandfetch,
+	},
 	{
 		name: 'getlogo.dev',
 		fetch: fetchLogoFromGetLogo,
@@ -58,7 +63,8 @@ export const logoProviders: LogoProvider[] = [
 export async function fetchLogoWithFailover(
 	options: LogoProviderOptions,
 	getlogoApiKey?: string,
-	logoDevApiKey?: string
+	logoDevApiKey?: string,
+	brandfetchApiKey?: string
 ): Promise<EnhancedLogoResult> {
 	const errors: string[] = [];
 	const successfulResults: EnhancedLogoResult[] = [];
@@ -66,6 +72,8 @@ export async function fetchLogoWithFailover(
 	for (const provider of logoProviders) {
 		const startTime = Date.now();
 		try {
+			console.log(`[Provider] Trying ${provider.name}...`);
+			
 			// Set the appropriate API key for each provider
 			const providerOptions: LogoProviderOptions = {
 				...options,
@@ -73,11 +81,15 @@ export async function fetchLogoWithFailover(
 					? (getlogoApiKey || options.apiKey)
 					: provider.name === 'logo.dev'
 					? (logoDevApiKey || options.apiKey)
+					: provider.name === 'brandfetch'
+					? (brandfetchApiKey || options.apiKey)
 					: options.apiKey,
 			};
 			
 			const result = await provider.fetch(providerOptions);
 			const duration = Date.now() - startTime;
+			
+			console.log(`[Provider] ${provider.name} result: ${result.success ? 'success' : 'failed'}`);
 
 			// Log the attempt
 			logProviderOperation(
@@ -137,6 +149,13 @@ export async function fetchLogoWithFailover(
 		} catch (error) {
 			const duration = Date.now() - startTime;
 			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+			
+			console.error(`[Provider] ${provider.name} threw error:`, error);
+			console.error(`[Provider] ${provider.name} error message:`, errorMessage);
+			if (error instanceof Error && error.stack) {
+				console.error(`[Provider] ${provider.name} stack:`, error.stack);
+			}
+			
 			errors.push(`${provider.name}: ${errorMessage}`);
 
 			logProviderOperation(
@@ -251,7 +270,7 @@ export async function fetchLogoWithFailover(
 	// All providers failed
 	return {
 		success: false,
-		error: `All providers failed: ${errors.join('; ')}`,
+		error: 'Logo not found', // Don't expose provider details to users
 		provider: 'all',
 	};
 }

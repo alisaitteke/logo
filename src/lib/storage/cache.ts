@@ -102,7 +102,8 @@ export function getCacheControlHeaders(metadata?: LogoMetadata, maxAge = 3153600
 	headers.set('X-Content-Type-Options', 'nosniff');
 
 	if (metadata) {
-		headers.set('X-Logo-Provider', metadata.provider);
+		// Don't expose provider name to users for security
+		// headers.set('X-Logo-Provider', metadata.provider);
 		headers.set('X-Logo-Retrieved-At', metadata.retrievedAt);
 	}
 

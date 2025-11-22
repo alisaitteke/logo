@@ -94,6 +94,7 @@
 	 * - BREVO_FROM_NAME (optional, sender name)
 	 * - GETLOGO_API_KEY (if required)
 	 * - LOGO_DEV_API_KEY (if required)
+	 * - BRANDFETCH_API_KEY (if required)
 	 */
 	/**
 	 * Static Assets

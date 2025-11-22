@@ -186,6 +186,8 @@ function parseQueryParams(url: URL) {
  */
 async function handleLogoEndpoint(context: any, domain?: string, companyName?: string) {
 	try {
+		console.log('[handleLogoEndpoint] Starting request processing...');
+		
 		const url = new URL(context.request.url);
 		const params = parseQueryParams(url);
 
@@ -215,6 +217,8 @@ async function handleLogoEndpoint(context: any, domain?: string, companyName?: s
 			);
 		}
 
+		console.log('[handleLogoEndpoint] Calling fetchLogo...');
+		
 		// Fetch logo from R2/providers
 		const result = await fetchLogo({
 			domain,
@@ -224,7 +228,12 @@ async function handleLogoEndpoint(context: any, domain?: string, companyName?: s
 			r2Bucket: context.locals.runtime.env.LOGOS,
 			kvNamespace: context.locals.runtime.env.API_KEYS,
 			useCache: true,
+			getlogoApiKey: context.locals.runtime.env.GETLOGO_API_KEY,
+			logoDevApiKey: context.locals.runtime.env.LOGO_DEV_API_KEY,
+			brandfetchApiKey: context.locals.runtime.env.BRANDFETCH_API_KEY,
 		});
+		
+		console.log('[handleLogoEndpoint] fetchLogo completed:', result.success);
 
 		if (!result.success || !result.logo) {
 			return createCorsResponse(
@@ -290,6 +299,10 @@ async function handleLogoEndpoint(context: any, domain?: string, companyName?: s
 		);
 		return corsResponse;
 	} catch (error) {
+		console.error('[handleLogoEndpoint] Caught error:', error);
+		console.error('[handleLogoEndpoint] Error message:', error instanceof Error ? error.message : 'Unknown');
+		console.error('[handleLogoEndpoint] Error stack:', error instanceof Error ? error.stack : 'No stack');
+		
 		return createCorsResponse(
 			JSON.stringify({
 				error: error instanceof Error ? error.message : 'Internal server error',
@@ -411,6 +424,10 @@ async function handleNameEndpoint(context: any, companyName: string) {
 		);
 		return corsResponse;
 	} catch (error) {
+		console.error('[handleLogoEndpoint] Caught error:', error);
+		console.error('[handleLogoEndpoint] Error message:', error instanceof Error ? error.message : 'Unknown');
+		console.error('[handleLogoEndpoint] Error stack:', error instanceof Error ? error.stack : 'No stack');
+		
 		return createCorsResponse(
 			JSON.stringify({
 				error: error instanceof Error ? error.message : 'Internal server error',

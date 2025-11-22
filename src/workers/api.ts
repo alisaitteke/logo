@@ -19,6 +19,7 @@ interface Env {
 	LOGO_DEV_API_URL?: string;
 	GETLOGO_API_KEY?: string;
 	LOGO_DEV_API_KEY?: string;
+	BRANDFETCH_API_KEY?: string;
 }
 
 // Create Hono app
@@ -106,6 +107,7 @@ app.get('/:domain', validateApiKey, async (c) => {
 			useCache: true,
 			getlogoApiKey: c.env.GETLOGO_API_KEY,
 			logoDevApiKey: c.env.LOGO_DEV_API_KEY,
+			brandfetchApiKey: c.env.BRANDFETCH_API_KEY,
 		});
 
 		if (!result.success || !result.logo) {
@@ -162,6 +164,7 @@ app.get('/name/:companyName', validateApiKey, async (c) => {
 			useCache: true,
 			getlogoApiKey: c.env.GETLOGO_API_KEY,
 			logoDevApiKey: c.env.LOGO_DEV_API_KEY,
+			brandfetchApiKey: c.env.BRANDFETCH_API_KEY,
 		});
 
 		if (!result.success || !result.logo) {
