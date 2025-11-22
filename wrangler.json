@@ -35,7 +35,7 @@
 			"dataset": "logo-logs"
 		}
 	],
-	"logpush": true,
+	"logpush": false,
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
