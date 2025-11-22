@@ -186,8 +186,24 @@ export async function fetchLogoWithFailover(
 
 	// If we have successful results, select the best one
 	if (successfulResults.length > 0) {
-		// Sort by format quality (SVG > PNG > JPG), then by file size, then by duration
+		// Sort by provider priority first, then format quality, then file size
 		successfulResults.sort((a, b) => {
+			// Provider priority: Wikipedia > Wikimedia > others > google-favicon
+			const getProviderPriority = (result: EnhancedLogoResult): number => {
+				if (result.provider === 'wikipedia') return 4;
+				if (result.provider === 'wikimedia') return 3;
+				if (result.provider === 'google-favicon') return 1;
+				return 2; // getlogo.dev, logo.dev
+			};
+
+			const providerPriorityA = getProviderPriority(a);
+			const providerPriorityB = getProviderPriority(b);
+
+			// First, compare by provider priority
+			if (providerPriorityA !== providerPriorityB) {
+				return providerPriorityB - providerPriorityA; // Higher priority first
+			}
+
 			// Get format from URL or content type
 			const getFormat = (result: EnhancedLogoResult): string => {
 				const url = result.logoUrl || '';
@@ -211,12 +227,12 @@ export async function fetchLogoWithFailover(
 			const priorityA = formatPriority[formatA] || 0;
 			const priorityB = formatPriority[formatB] || 0;
 
-			// First, compare by format priority
+			// Second, compare by format priority
 			if (priorityA !== priorityB) {
 				return priorityB - priorityA; // Higher priority first
 			}
 
-			// If same format, compare by file size (larger is better)
+			// Third, compare by file size (larger is better)
 			if (a.fileSize && b.fileSize) {
 				return b.fileSize - a.fileSize;
 			}

@@ -270,7 +270,7 @@ function extractDomain(url: string): string | null {
 		// Filter unwanted domains (gov, wikipedia, social media, etc.)
 		if (shouldFilterDomain(domain)) {
 			console.log(`[DomainFinder] ✗ Filtered domain: ${domain}`);
-			return null;
+		return null;
 		}
 
 		return domain;
@@ -281,7 +281,7 @@ function extractDomain(url: string): string | null {
 		if (domainMatch && domainMatch[1]) {
 			const domain = domainMatch[1].replace(/^www\./, '');
 			if (domain.includes('.') && !shouldFilterDomain(domain)) {
-				return domain;
+					return domain;
 			}
 		}
 		return null;

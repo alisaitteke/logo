@@ -181,12 +181,12 @@ export async function fetchLogoFromGoogleFavicon(
 					},
 				});
 			}
-			
-			if (!response.ok) {
-				return {
-					success: false,
+
+		if (!response.ok) {
+			return {
+				success: false,
 					error: `Google Favicon and direct /favicon.ico failed for ${domain}. Final status: ${response.status || 'N/A'}`,
-				};
+			};
 			}
 		}
 

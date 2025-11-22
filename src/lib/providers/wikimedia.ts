@@ -123,34 +123,58 @@ async function searchCommonsForLogo(searchTerm: string): Promise<string[]> {
 						fileNameLower.includes('logotype') ||
 						fileNameLower.includes('brand')
 					) {
-						// Check if filename contains the search term (for better matching)
-						const containsSearchTerm = fileNameLower.includes(cleanTerm.toLowerCase());
+						// STRICT MATCHING: File name must contain the search term (or latinized version)
+						const containsOriginal = fileNameLower.includes(cleanTerm.toLowerCase());
+						const containsLatin = hasNonLatin && fileNameLower.includes(latinTerm);
 						
-						// Prefer exact matches, then SVG, then PNG
-						if (fileNameLower.endsWith('.svg')) {
-							if (containsSearchTerm) {
-								foundFiles.unshift(fileName); // Exact match SVG to front
-							} else {
-								foundFiles.push(fileName); // Non-exact SVG to back
+						if (!containsOriginal && !containsLatin) {
+							console.log(`[Wikimedia] ✗ Skipping non-matching file: ${fileName} (search: ${cleanTerm})`);
+							continue; // Skip files that don't contain search term
+						}
+						
+						// Calculate relevance score: how close is the match?
+						// Exact match at start of filename = highest score
+						const searchTerms = [cleanTerm.toLowerCase()];
+						if (hasNonLatin) searchTerms.push(latinTerm);
+						
+						let relevanceScore = 0;
+						for (const term of searchTerms) {
+							if (fileNameLower.startsWith(term)) {
+								relevanceScore = 100; // Exact match at start
+								break;
+							} else if (fileNameLower.includes(term)) {
+								relevanceScore = 50; // Contains term
 							}
-						} else if (
-							fileNameLower.endsWith('.png') ||
-							fileNameLower.endsWith('.jpg') ||
-							fileNameLower.endsWith('.jpeg')
-						) {
-							if (containsSearchTerm) {
-								// Exact match raster before non-exact SVG
-								const firstNonExactIndex = foundFiles.findIndex(f => 
-									!f.toLowerCase().includes(cleanTerm.toLowerCase())
-								);
-								if (firstNonExactIndex !== -1) {
-									foundFiles.splice(firstNonExactIndex, 0, fileName);
-								} else {
-									foundFiles.push(fileName);
+						}
+						
+						// Prefer SVG, then PNG
+						const formatBonus = fileNameLower.endsWith('.svg') ? 10 : 
+						                    fileNameLower.endsWith('.png') ? 5 : 0;
+						
+						// Sort by relevance score + format bonus
+						const totalScore = relevanceScore + formatBonus;
+						
+						// Insert in sorted order (highest score first)
+						const insertIndex = foundFiles.findIndex(f => {
+							const fLower = f.toLowerCase();
+							let fScore = 0;
+							for (const term of searchTerms) {
+								if (fLower.startsWith(term)) {
+									fScore = 100;
+									break;
+								} else if (fLower.includes(term)) {
+									fScore = 50;
 								}
-							} else {
-								foundFiles.push(fileName);
 							}
+							const fFormatBonus = fLower.endsWith('.svg') ? 10 : 
+							                     fLower.endsWith('.png') ? 5 : 0;
+							return (fScore + fFormatBonus) < totalScore;
+						});
+						
+						if (insertIndex === -1) {
+							foundFiles.push(fileName);
+						} else {
+							foundFiles.splice(insertIndex, 0, fileName);
 						}
 					}
 				}
