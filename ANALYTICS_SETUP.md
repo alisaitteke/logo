@@ -11,14 +11,9 @@ Cloudflare Workers'da `console.log` kullanımı **5-30 saniye gecikme** ile logl
 
 ## Kurulum
 
-### 1. Analytics Engine Dataset Oluştur
+### 1. Wrangler.json Kontrolü
 
-```bash
-# Wrangler CLI ile dataset oluştur
-wrangler analytics-engine create logo-logs
-```
-
-Bu komut bir dataset ID döndürecek. Bu ID'yi `wrangler.json`'a eklemeniz gerekebilir (genellikle otomatik yapılır).
+**ÖNEMLİ:** Analytics Engine dataset'leri **otomatik oluşturulur**! `wrangler.json`'da tanımlandığında ve ilk kez veri yazıldığında otomatik olarak oluşturulur. Manuel oluşturma gerekmez.
 
 ### 2. Wrangler.json Kontrolü
 
@@ -33,7 +28,16 @@ Bu komut bir dataset ID döndürecek. Bu ID'yi `wrangler.json`'a eklemeniz gerek
 ]
 ```
 
-### 3. Kullanım
+### 3. Deploy ve İlk Kullanım
+
+```bash
+# Worker'ı deploy et
+wrangler deploy
+
+# İlk log yazıldığında dataset otomatik oluşturulacak
+```
+
+### 4. Kullanım
 
 Artık kodunuzda `logger` kullanabilirsiniz:
 
@@ -96,9 +100,10 @@ logger.error('Failed to fetch logo', error, { domain }, env.ANALYTICS);
 ## Sorun Giderme
 
 **Loglar görünmüyor:**
-1. Dataset'in oluşturulduğundan emin olun: `wrangler analytics-engine list`
+1. Worker'ı deploy ettikten sonra en az bir log yazıldığından emin olun (dataset otomatik oluşturulur)
 2. Binding'in doğru olduğunu kontrol edin: `wrangler.json`
-3. Worker'ı yeniden deploy edin: `wrangler deploy`
+3. Cloudflare Dashboard'da dataset'in oluşturulduğunu kontrol edin: Workers & Pages → Analytics → Analytics Engine
+4. Worker'ı yeniden deploy edin: `wrangler deploy`
 
 **Analytics Engine yazma hatası:**
 - Logger otomatik olarak `console.log`'a fallback yapar
