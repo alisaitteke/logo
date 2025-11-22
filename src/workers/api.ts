@@ -6,6 +6,7 @@ import { Hono } from 'hono';
 import { fetchLogo } from '../lib/logo-fetcher';
 import { getCacheControlHeaders } from '../lib/storage/cache';
 import { getMetadataFromKV } from '../lib/storage/kv';
+import { logger } from '../lib/logging/fast-logger';
 
 // Environment bindings interface
 interface Env {
@@ -13,6 +14,7 @@ interface Env {
 	API_KEYS: KVNamespace;
 	STATS: KVNamespace;
 	MAGIC_LINKS: KVNamespace;
+	ANALYTICS?: AnalyticsEngineDataset; // For fast logging
 	GETLOGO_API_URL?: string;
 	LOGO_DEV_API_URL?: string;
 	GETLOGO_API_KEY?: string;
@@ -126,6 +128,12 @@ app.get('/:domain', validateApiKey, async (c) => {
 			},
 		});
 	} catch (error) {
+		logger.error(
+			'Failed to fetch logo by domain',
+			error,
+			{ domain: c.req.param('domain') },
+			c.env.ANALYTICS
+		);
 		return c.json(
 			{
 				error: error instanceof Error ? error.message : 'Internal server error',
@@ -176,6 +184,12 @@ app.get('/name/:companyName', validateApiKey, async (c) => {
 			},
 		});
 	} catch (error) {
+		logger.error(
+			'Failed to fetch logo by company name',
+			error,
+			{ companyName: c.req.param('companyName') },
+			c.env.ANALYTICS
+		);
 		return c.json(
 			{
 				error: error instanceof Error ? error.message : 'Internal server error',
