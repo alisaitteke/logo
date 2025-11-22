@@ -1408,6 +1408,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@resvg/resvg-wasm@npm:^2.6.2":
+  version: 2.6.2
+  resolution: "@resvg/resvg-wasm@npm:2.6.2"
+  checksum: 10c0/74eb061c53510dad516e42375d1802a5b70ff531abd3c858921178add5acd136382a2f0afc1bd83fa72ec2c2c9bd40a636000572a152b53a9b04e9c131ba0223
+  languageName: node
+  linkType: hard
+
 "@rollup/pluginutils@npm:^5.3.0":
   version: 5.3.0
   resolution: "@rollup/pluginutils@npm:5.3.0"
@@ -1954,6 +1961,7 @@ __metadata:
     "@astrojs/tailwind": "npm:^6.0.2"
     "@cf-wasm/photon": "npm:^0.2.2"
     "@getbrevo/brevo": "npm:^3.0.1"
+    "@resvg/resvg-wasm": "npm:^2.6.2"
     "@types/node": "npm:^24.10.1"
     astro: "npm:^5.16.0"
     duckduckjs: "npm:^1.0.1"

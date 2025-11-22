@@ -5,6 +5,8 @@
 
 import { fetchLogoFromGetLogo, type LogoProviderResult, type LogoProviderOptions } from './getlogo';
 import { fetchLogoFromLogoDev } from './logodev';
+import { fetchLogoFromWikimedia } from './wikimedia';
+import { fetchLogoFromWikipedia } from './wikipedia';
 import { fetchLogoFromGoogleFavicon } from './google-favicon';
 import { createFetchLog, logProviderOperation } from '../logging/logger';
 
@@ -34,6 +36,14 @@ export const logoProviders: LogoProvider[] = [
 	{
 		name: 'logo.dev',
 		fetch: fetchLogoFromLogoDev,
+	},
+	{
+		name: 'wikipedia',
+		fetch: fetchLogoFromWikipedia,
+	},
+	{
+		name: 'wikimedia',
+		fetch: fetchLogoFromWikimedia,
 	},
 ];
 
@@ -83,7 +93,12 @@ export async function fetchLogoWithFailover(
 			if (result.success && result.logoUrl) {
 				// Fetch the actual logo data to get size information
 				try {
-					const logoResponse = await fetch(result.logoUrl);
+					const logoResponse = await fetch(result.logoUrl, {
+						headers: {
+							'User-Agent': 'Mozilla/5.0 (compatible; LogoFetcher/1.0)',
+						},
+					});
+					
 					if (logoResponse.ok) {
 						const logoData = await logoResponse.arrayBuffer();
 						const contentType = logoResponse.headers.get('content-type') || '';
@@ -98,6 +113,14 @@ export async function fetchLogoWithFailover(
 							fileSize,
 						};
 
+						successfulResults.push(enhancedResult);
+					} else {
+						// If fetch fails (e.g. 403), still add the result but without data
+						console.warn(`Failed to fetch logo data for ${provider.name}: ${logoResponse.status}`);
+						const enhancedResult: EnhancedLogoResult = {
+							...result,
+							duration,
+						};
 						successfulResults.push(enhancedResult);
 					}
 				} catch (fetchError) {
@@ -127,7 +150,7 @@ export async function fetchLogoWithFailover(
 		}
 	}
 
-	// If no success yet and we have a domain, try Google Favicon as last resort
+	// If no success yet and we have a domain or company name, try Google Favicon as last resort
 	if (successfulResults.length === 0 && options.domain) {
 		const startTime = Date.now();
 		try {
@@ -161,16 +184,48 @@ export async function fetchLogoWithFailover(
 		}
 	}
 
-	// If we have successful results, select the largest one
+	// If we have successful results, select the best one
 	if (successfulResults.length > 0) {
-		// Sort by file size (largest first), or by duration (fastest first) if no size info
+		// Sort by format quality (SVG > PNG > JPG), then by file size, then by duration
 		successfulResults.sort((a, b) => {
+			// Get format from URL or content type
+			const getFormat = (result: EnhancedLogoResult): string => {
+				const url = result.logoUrl || '';
+				if (url.includes('.svg') || url.toLowerCase().includes('svg')) return 'svg';
+				if (url.includes('.png') || url.toLowerCase().includes('png')) return 'png';
+				if (url.includes('.jpg') || url.includes('.jpeg') || url.toLowerCase().includes('jpeg')) return 'jpg';
+				return 'unknown';
+			};
+
+			const formatA = getFormat(a);
+			const formatB = getFormat(b);
+
+			// Format priority: SVG > PNG > JPG > others
+			const formatPriority: Record<string, number> = {
+				'svg': 3,
+				'png': 2,
+				'jpg': 1,
+				'unknown': 0,
+			};
+
+			const priorityA = formatPriority[formatA] || 0;
+			const priorityB = formatPriority[formatB] || 0;
+
+			// First, compare by format priority
+			if (priorityA !== priorityB) {
+				return priorityB - priorityA; // Higher priority first
+			}
+
+			// If same format, compare by file size (larger is better)
 			if (a.fileSize && b.fileSize) {
-				return b.fileSize - a.fileSize; // Largest first
+				return b.fileSize - a.fileSize;
 			}
+
+			// If no size info, prefer faster response
 			if (a.duration && b.duration) {
-				return a.duration - b.duration; // Fastest first
+				return a.duration - b.duration;
 			}
+
 			return 0;
 		});
 

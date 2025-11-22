@@ -13,8 +13,20 @@ export interface TransformOptions {
 }
 
 /**
+ * Check if image data is SVG format
+ * @param imageData - Image data to check
+ * @returns True if SVG
+ */
+function isSvg(imageData: ArrayBuffer): boolean {
+	const bytes = new Uint8Array(imageData);
+	// Check for SVG signature (starts with '<svg' or '<?xml')
+	const text = new TextDecoder().decode(bytes.slice(0, 100));
+	return text.includes('<svg') || (text.includes('<?xml') && text.includes('svg'));
+}
+
+/**
  * Transform image using Photon (WebAssembly)
- * @param imageData - Original image data (PNG/JPEG/WebP)
+ * @param imageData - Original image data (PNG/JPEG/WebP/SVG)
  * @param options - Transformation options
  * @returns Transformed image data
  */
@@ -23,6 +35,12 @@ export async function transformImage(
 	options: TransformOptions
 ): Promise<ArrayBuffer> {
 	try {
+		// Skip transformation for SVG - return as-is
+		if (isSvg(imageData)) {
+			console.log('[Transform] Skipping transformation for SVG (vector format)');
+			return imageData;
+		}
+
 		// Load image into Photon
 		const inputImage = PhotonImage.new_from_byteslice(new Uint8Array(imageData));
 		

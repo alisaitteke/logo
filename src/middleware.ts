@@ -6,6 +6,7 @@ import type { MiddlewareHandler } from 'astro';
 import { fetchLogo } from './lib/logo-fetcher';
 import { getCacheControlHeaders } from './lib/storage/cache';
 import { transformImage, needsTransformation } from './lib/images/transform';
+import { isSvgData, convertSvg } from './lib/images/svg-converter';
 import {
 	validateEmail,
 	generateApiKey,
@@ -236,9 +237,24 @@ async function handleLogoEndpoint(context: any, domain?: string, companyName?: s
 			);
 		}
 
-		// Apply transformations if needed (size, format, greyscale)
+		// Check if logo is SVG
+		const isSvg = isSvgData(result.logo);
+		console.log(`[Logo Format] SVG: ${isSvg}, Requested format: ${params.format}`);
+
 		let transformedLogo = result.logo;
-		if (needsTransformation({ 
+
+		// If SVG and user wants PNG/WebP, convert it
+		if (isSvg && params.format !== 'svg') {
+			console.log(`[SVG Conversion] Converting SVG to ${params.format}`);
+			transformedLogo = await convertSvg(
+				result.logo,
+				params.format,
+				params.size,
+				params.size
+			);
+		}
+		// If not SVG, apply regular transformations
+		else if (!isSvg && needsTransformation({ 
 			width: params.size, 
 			height: params.size, 
 			format: params.format,
@@ -252,12 +268,17 @@ async function handleLogoEndpoint(context: any, domain?: string, companyName?: s
 			});
 		}
 
+		// Determine correct content type
+		const finalIsSvg = isSvgData(transformedLogo);
+		const contentType = finalIsSvg ? 'image/svg+xml' : `image/${params.format}`;
+		console.log(`[Content-Type] Final format - SVG: ${finalIsSvg}, Content-Type: ${contentType}`);
+
 		// Get cache headers
 		const headers = getCacheControlHeaders(result.metadata);
 
 		// Return transformed logo with CORS headers
 		const corsHeaders = new Headers({
-			'Content-Type': `image/${params.format}`,
+			'Content-Type': contentType,
 			...Object.fromEntries(headers.entries()),
 		});
 		const corsResponse = createCorsResponse(
@@ -337,9 +358,24 @@ async function handleNameEndpoint(context: any, companyName: string) {
 			);
 		}
 
-		// Apply transformations if needed (size, format, greyscale)
+		// Check if logo is SVG
+		const isSvg = isSvgData(result.logo);
+		console.log(`[Logo Format] SVG: ${isSvg}, Requested format: ${params.format}`);
+
 		let transformedLogo = result.logo;
-		if (needsTransformation({ 
+
+		// If SVG and user wants PNG/WebP, convert it
+		if (isSvg && params.format !== 'svg') {
+			console.log(`[SVG Conversion] Converting SVG to ${params.format}`);
+			transformedLogo = await convertSvg(
+				result.logo,
+				params.format,
+				params.size,
+				params.size
+			);
+		}
+		// If not SVG, apply regular transformations
+		else if (!isSvg && needsTransformation({ 
 			width: params.size, 
 			height: params.size, 
 			format: params.format,
@@ -353,12 +389,17 @@ async function handleNameEndpoint(context: any, companyName: string) {
 			});
 		}
 
+		// Determine correct content type
+		const finalIsSvg = isSvgData(transformedLogo);
+		const contentType = finalIsSvg ? 'image/svg+xml' : `image/${params.format}`;
+		console.log(`[Content-Type] Final format - SVG: ${finalIsSvg}, Content-Type: ${contentType}`);
+
 		// Get cache headers
 		const headers = getCacheControlHeaders(result.metadata);
 
 		// Return transformed logo with CORS headers
 		const corsHeaders = new Headers({
-			'Content-Type': `image/${params.format}`,
+			'Content-Type': contentType,
 			...Object.fromEntries(headers.entries()),
 		});
 		const corsResponse = createCorsResponse(

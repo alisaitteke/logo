@@ -20,6 +20,7 @@
 		"@astrojs/tailwind": "^6.0.2",
 		"@cf-wasm/photon": "^0.2.2",
 		"@getbrevo/brevo": "^3.0.1",
+		"@resvg/resvg-wasm": "^2.6.2",
 		"astro": "^5.16.0",
 		"duckduckjs": "^1.0.1",
 		"hono": "^4.10.6",

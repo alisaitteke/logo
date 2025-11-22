@@ -65,8 +65,9 @@ export function sanitizeCompanyName(name: string): string | null {
 	sanitized = sanitized.replace(/<[^>]*>/g, '');
 
 	// Remove special characters that could be used for injection
-	// Allow alphanumeric, spaces, hyphens, underscores, and common punctuation
-	sanitized = sanitized.replace(/[^a-zA-Z0-9\s\-_.,&()]/g, '');
+	// Allow alphanumeric (including Unicode letters), spaces, hyphens, underscores, and common punctuation
+	// \p{L} matches any Unicode letter (Turkish, Greek, Cyrillic, etc.)
+	sanitized = sanitized.replace(/[^\p{L}\p{N}\s\-_.,&()]/gu, '');
 
 	// Normalize whitespace
 	sanitized = sanitized.replace(/\s+/g, ' ');
